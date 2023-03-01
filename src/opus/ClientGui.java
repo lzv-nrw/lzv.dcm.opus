@@ -16,7 +16,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -459,19 +458,6 @@ public class ClientGui {
 	        	catch (IOException e2){  }
 		       }
 		});	
-	}
-	
-	public void loadDialog() throws Exception {
-		JDialog loadDialog = new JDialog();
-		loadDialog.setLocationRelativeTo(null);
-		loadDialog.setTitle("Dialog");
-		loadDialog.setBackground(Color.white);
-		loadDialog.setSize(250, 150);
-		loadDialog.setVisible(true);
-		urlLoadImg = ClientGui.class.getResource("/conf/loading.gif");
-		loadImg = new ImageIcon(urlLoadImg);
-		loadDialog.add(new JLabel(loadImg));
-		loadDialog.setVisible(true);
 	}
 	
 	
