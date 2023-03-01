@@ -12,6 +12,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * Write Metadata in File "bag-info.txt"
+ * 
+ * @author ogan
+ *
+ */
 public class BagInfo {
 	
 	public static void writeBagInfoOne(String opusId, int fileCount, String xmlPath, String bagitPath) throws Exception {

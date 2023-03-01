@@ -27,7 +27,12 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-
+/**
+ * Generte Gui
+ * 
+ * @author ogan
+ *
+ */
 public class ClientGui {
 	
 	JFrame guiFrame;

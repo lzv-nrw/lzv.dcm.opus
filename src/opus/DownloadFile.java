@@ -17,6 +17,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * Download files from the OPUS-record
+ * 
+ * @author ogan
+ *
+ */
 public class DownloadFile {
 	
 	public static void downloadOne(String opusId, int fileCount, String xmlPath, String bagitPath) throws IOException, Exception {

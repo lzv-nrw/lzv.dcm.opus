@@ -13,6 +13,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * Write information in bagit.txt
+ * 
+ * @author ogan
+ *
+ */
 public class BagitTxt {
 	
 	public static void bagitTextOne(String opusId, int fileCount, String xmlPath, String bagitPath) throws IOException, Exception {

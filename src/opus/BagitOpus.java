@@ -1,5 +1,11 @@
 package opus;
 
+/**
+ * Main class
+ * 
+ * @author ogan
+ *
+ */
 public class BagitOpus {
 
 	public static void main(String[] args) throws Exception {

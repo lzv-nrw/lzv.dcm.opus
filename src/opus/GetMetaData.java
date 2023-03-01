@@ -19,6 +19,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+/**
+ * Get Metadata from OPUS and write in Files
+ * 
+ * @author ogan
+ *
+ */
 public class GetMetaData {
 
 	public static void getRequest(String url, String dir) throws IOException, Exception {

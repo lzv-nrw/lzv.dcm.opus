@@ -15,6 +15,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * Generate checksums for the downloaded files in /data
+ * 
+ * @author ogan
+ *
+ */
 public class FileChecksum {
 	
 	public static void generateFileChecksumOne(String opusId, int fileCount, String selectedChecksum, String xmlPath, String bagitPath) throws Exception {
