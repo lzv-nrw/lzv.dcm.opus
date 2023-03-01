@@ -63,8 +63,11 @@ public class GetMetaData {
             NodeList nodeList = element.getElementsByTagName("ListRecords");
             Element listRecordsElement = (Element)nodeList.item(0);
             Element resumptionTokenElement = (Element)listRecordsElement.getElementsByTagName("resumptionToken").item(0);
-            Text resumptionTokeContentNode = (Text)resumptionTokenElement.getFirstChild();
-            resumptionTokenContent = resumptionTokeContentNode.getData();
+            Text resumptionTokeContentNode;
+            if (resumptionTokenElement != null) {
+            	resumptionTokeContentNode = (Text)resumptionTokenElement.getFirstChild();
+            	resumptionTokenContent = resumptionTokeContentNode.getData();
+            }
 
             // Read and write next pages
             int i=1;

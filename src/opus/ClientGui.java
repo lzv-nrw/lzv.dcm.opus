@@ -398,7 +398,7 @@ public class ClientGui {
 								labelResultBagits.setText("Ergebnis: BagIt von OPUS-Id " + opusId + " erfolgreich erstellt.");
 								labelResultBagits.setForeground(Color.black);
 								bagitDirectory = new File(bagitPath);	
-								openBagitDirButton.setText("BagIt-Verzeichnis öffnen und beenden");
+								openBagitDirButton.setText("BagIt-Verzeichnis öffnen");
 								openBagitDirButton.setBackground(null);
 								openBagitDirButton.setForeground(Color.black);
 								openBagitDirButton.setBorderPainted(true);
@@ -420,7 +420,7 @@ public class ClientGui {
 							ClientGui.setLook();
 							labelResultBagits.setForeground(Color.black);
 							bagitDirectory = new File(bagitPath);	
-							openBagitDirButton.setText("BagIt-Verzeichnis öffnen und beenden");
+							openBagitDirButton.setText("BagIt-Verzeichnis öffnen");
 							openBagitDirButton.setBackground(null);
 							openBagitDirButton.setForeground(Color.black);
 							openBagitDirButton.setBorderPainted(true);
@@ -452,7 +452,6 @@ public class ClientGui {
 	        	      }
 	        	}	
 	        	catch (IOException e2){  }
-	        	guiFrame.dispose();
 		       }
 		});	
 	}
