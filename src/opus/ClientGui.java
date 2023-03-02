@@ -23,7 +23,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SpringLayout.Constraints;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -275,7 +274,7 @@ public class ClientGui {
 		bagitPanel.add(labelSelectOpusId, constraints);			
 		
 		// ComboBox for checksum
-		String[] arrayChecksum = {"SHA1", "SHA-256", "MD5"};
+		String[] arrayChecksum = {"SHA1", "SHA256", "MD5"};
 		selectChecksum = new JComboBox<String>(arrayChecksum);
 		selectChecksum.setBackground(Color.WHITE);
 
@@ -353,43 +352,26 @@ public class ClientGui {
 				
 				//  Get value of opusIdField
 				String opusId = opusIdField.getText();
+				if (opusId.equals("")){
+					opusId = null;
+				}
 				
 				selectedIndex = selectChecksum.getSelectedIndex() ;
 				selectedChecksum = arrayChecksum[selectedIndex];
 				
 				// Creates BagIts with help of the XML-files, one or all
 				for (int i = 0; i < fileCount; i++ ) {
-					if (!opusId.equals("")) {
-						try {
-							DownloadFile.downloadOne(opusId, i, xmlDirectoryPath, bagitPath);
-							BagInfo.writeBagInfoOne(opusId, i, xmlDirectoryPath, bagitPath);
-							BagitTxt.bagitTextOne(opusId, i, xmlDirectoryPath, bagitPath);
-							FileChecksum.generateFileChecksumOne(opusId, i, selectedChecksum, xmlDirectoryPath, bagitPath);						
-							File test = new File(bagitPath + "\\opus_" + opusId);
-							if(test.exists()) {
-								ClientGui.setLook();
-								labelResultBagits.setText("Ergebnis: BagIt von OPUS-Id " + opusId + " erfolgreich erstellt.");
-								labelResultBagits.setForeground(Color.black);
-								bagitDirectory = new File(bagitPath);	
-								openBagitDirButton.setText("BagIt-Verzeichnis öffnen");
-								openBagitDirButton.setBackground(null);
-								openBagitDirButton.setForeground(Color.black);
-								openBagitDirButton.setBorderPainted(true);
-								openBagitDirButton.setEnabled(true);
-							}
-							else {
-								labelResultBagits.setText("Ergebnis: Bitte gültige OPUS-Id eingeben.");
-							}
-						} catch (Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+					try {
+						File test = null;
+						DownloadFile.download(opusId, i, xmlDirectoryPath, bagitPath);
+						BagInfo.writeBagInfo(opusId, i, xmlDirectoryPath, bagitPath);
+						BagitTxt.bagitText(opusId, i, xmlDirectoryPath, bagitPath);
+						FileChecksum.generateFileChecksum(opusId, i, selectedChecksum, xmlDirectoryPath, bagitPath);
+						
+						if (opusId != null) {
+							test = new File(bagitPath + "\\opus_" + opusId);
 						}
-					} else if(selectAllId.isSelected() && opusId.equals("")){
-						try {
-							DownloadFile.downloadAll(i, xmlDirectoryPath, bagitPath);
-							BagInfo.writeBagInfoAll(i, xmlDirectoryPath, bagitPath);
-							BagitTxt.bagitTextAll(i, xmlDirectoryPath, bagitPath);
-							FileChecksum.generateFileChecksumAll(i, selectedChecksum, xmlDirectoryPath, bagitPath);
+						if(opusId == null || test.exists() ) {
 							ClientGui.setLook();
 							labelResultBagits.setForeground(Color.black);
 							bagitDirectory = new File(bagitPath);	
@@ -398,13 +380,21 @@ public class ClientGui {
 							openBagitDirButton.setForeground(Color.black);
 							openBagitDirButton.setBorderPainted(true);
 							openBagitDirButton.setEnabled(true);
-							labelResultBagits.setText("Ergebnis: BagIts erfolgreich erstellt.");	
-						} catch (Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+							if (opusId == null) {
+								labelResultBagits.setText("Ergebnis: BagIts erfolgreich erstellt.");
+							} 
+							else {						
+								labelResultBagits.setText("Ergebnis: BagIt von OPUS-Id " + opusId + " erfolgreich erstellt.");
+							}
 						}
+						else {
+							labelResultBagits.setForeground(Color.red);
+							labelResultBagits.setText("Ergebnis: Bitte gültige OPUS-Id eingeben.");
+						}
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
-
 				}
 
 			}

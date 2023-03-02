@@ -25,12 +25,10 @@ import org.w3c.dom.NodeList;
  */
 public class DownloadFile {
 	
-	public static void downloadOne(String opusId, int fileCount, String xmlPath, String bagitPath) throws IOException, Exception {
+	public static void download(String opusId, int fileCount, String xmlPath, String bagitPath) throws IOException, Exception {
 		
-		String url = null;
+		
 		String id = null;
-		String filename = null;
-		List<String> filePath = new ArrayList<String>();
 				
 	
 		File inputFile = new File(xmlPath + "\\opusMetaData_" + fileCount + ".xml");
@@ -53,107 +51,55 @@ public class DownloadFile {
 	        		id = DownloadFile.cutFront(id, ":", 2);
 	        	}            
 	        	
-	        	if (id.equals(opusId)) {    		
-		        	// Get number of files
-		        	int n = 0;
-		        	while (urlElement.getElementsByTagName("dc:format").item(n) != null){
-		        		n++;
-		        	}
-		        	int m = 0;
-		        	while (urlElement.getElementsByTagName("dc:identifier").item(m) != null){
-		        		m++;
-		        	}
-		        	
-		        	// Get url content
-		        	int k=m-n;
-		        	while (urlElement.getElementsByTagName("dc:identifier").item(k) != null){
-		        		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
-		        	            
-					    URL website = new URL(url);
-						ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-						
-						String pathString = bagitPath + "\\opus_" + id + "\\data\\";
-						
-						File f1 = new File(pathString);  
-						f1.mkdirs();  
-						filename = DownloadFile.cutFront(url, "/", 5);
-		
-						filePath.add(pathString + filename);
-						
-						FileOutputStream fos = new FileOutputStream(pathString + filename);
-						fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-						fos.close();
-						k++;
-		        	}
-			    }	        	
+	        	// Call method downloadFiles for one BagIt or all
+	        	if (opusId != null && id.equals(opusId)) {    		
+	        		DownloadFile.downloadFiles(urlElement, id, bagitPath);
+			    } 
+	        	else if (opusId == null) {
+	        		DownloadFile.downloadFiles(urlElement, id, bagitPath);
+			    }
 		    }
 	    }
 	}
 	
-
-	public static void downloadAll(int fileCount, String xmlPath, String bagitPath) throws IOException, Exception {
-		
+	// Downloader
+	public static void downloadFiles(Element urlElement, String id, String bagitPath) throws Exception {
 		String url = null;
-		String id = null;
 		String filename = null;
 		List<String> filePath = new ArrayList<String>();
-				
-	
-		File inputFile = new File(xmlPath + "\\opusMetaData_" + fileCount + ".xml");
-	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-	    Document doc = dBuilder.parse(inputFile);
-	    doc.getDocumentElement().normalize();
-	    NodeList nList = doc.getElementsByTagName("record");
+
+    	// Get number of files
+    	int n = 0;
+    	while (urlElement.getElementsByTagName("dc:format").item(n) != null){
+    		n++;
+    	}
+    	int m = 0;
+    	while (urlElement.getElementsByTagName("dc:identifier").item(m) != null){
+    		m++;
+    	}
+    	
+    	// Get url content
+    	int k=m-n;
+    	while (urlElement.getElementsByTagName("dc:identifier").item(k) != null){
+    		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
+    	            
+		    URL website = new URL(url);
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			
+			String pathString = bagitPath + "\\opus_" + id + "\\data\\";
+			
+			File f1 = new File(pathString);  
+			f1.mkdirs();  
+			filename = DownloadFile.cutFront(url, "/", 5).replace("%20", " ");
+
+			filePath.add(pathString + filename);
+			
+			FileOutputStream fos = new FileOutputStream(pathString + filename);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+			k++;
+    	}
 		
-	    for (int temp = 0; temp < nList.getLength(); temp++) {
-
-	    	Node nNode = nList.item(temp);
-	    	Element urlElement = (Element) nNode;
-	    	Element idElement = (Element) nNode;
-	    	
-	    	// Get OPUS identifier content
-		    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-	        	
-	        	if (idElement.getElementsByTagName("identifier").item(0) != null){
-	        		id = idElement.getElementsByTagName("identifier").item(0).getTextContent();
-	        		id = DownloadFile.cutFront(id, ":", 2);
-	        	}            
-	        	
-	        	// Get number of files
-	        	int n = 0;
-	        	while (urlElement.getElementsByTagName("dc:format").item(n) != null){
-	        		n++;
-	        	}
-	        	int m = 0;
-	        	while (urlElement.getElementsByTagName("dc:identifier").item(m) != null){
-	        		m++;
-	        	}
-	        	
-	        	// Get url content
-	        	int k=m-n;
-	        	while (urlElement.getElementsByTagName("dc:identifier").item(k) != null){
-	        		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
-	        	            
-				    URL website = new URL(url);
-					ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-					
-					String pathString = bagitPath + "\\opus_" + id + "\\data\\";
-					
-					File f1 = new File(pathString);  
-					f1.mkdirs();  
-					filename = DownloadFile.cutFront(url, "/", 5);
-	
-					filePath.add(pathString + filename);
-					
-					FileOutputStream fos = new FileOutputStream(pathString + filename);
-					fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);	
-					fos.close();
-					k++;
-	        	}
-		    }
-
-	    }
 	}
 	
 	// The method cut a given String returns a partial string starting from a certain position of a separator sign.

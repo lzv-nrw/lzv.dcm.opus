@@ -23,7 +23,7 @@ import org.w3c.dom.NodeList;
  */
 public class FileChecksum {
 	
-	public static void generateFileChecksumOne(String opusId, int fileCount, String selectedChecksum, String xmlPath, String bagitPath) throws Exception {
+	public static void generateFileChecksum(String opusId, int fileCount, String selectedChecksum, String xmlPath, String bagitPath) throws Exception {
 		
 		File inputFile = new File(xmlPath + "\\opusMetaData_" + fileCount + ".xml");
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -32,10 +32,7 @@ public class FileChecksum {
 	    doc.getDocumentElement().normalize();
 	    NodeList nList = doc.getElementsByTagName("record");
 	    
-	    String url = null;
 		String id = null;
-		String filename = null;
-		String selectedChecksumLow = selectedChecksum.toLowerCase();
 				
 		// Write content in File
 		
@@ -52,161 +49,82 @@ public class FileChecksum {
 	        		id = idElement.getElementsByTagName("identifier").item(0).getTextContent();
 	        		id = FileChecksum.cutFront(id, ":", 2);
 	        	}            
-	        	if (id.equals(opusId)) {
-	        		// Get content and write in file
-	        	
-	        		// Get number of files
-		        	int n = 0;
-		        	while (urlElement.getElementsByTagName("dc:format").item(n) != null){
-		        		n++;
-		        	}
-		        	int m = 0;
-		        	while (urlElement.getElementsByTagName("dc:identifier").item(m) != null){
-		        		m++;
-		        	}
-		        	int k=m-n;
-		        	
-		        	// Get url content
-		        	if (urlElement.getElementsByTagName("dc:identifier").item(k) != null) {
-		        		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
-		        		filename = FileChecksum.cutFront(url, "/", 5);
-		        		String filePath = "\\opus_" + id + "\\data\\" + filename;
-		    			
-		    			//Create checksum for this file
-		    			File file = new File(bagitPath + "\\opus_" + id + "\\data\\" + filename);
-		    			 
-		    			//Use selected algorithm
-		    			MessageDigest sumDigest = MessageDigest.getInstance(selectedChecksum);
-		    			 
-		    			//Get the checksum
-		    			String checksum = getFileChecksum(sumDigest, file);
-		    			 		    			
-		    	        // Write content in File
-		    			String maniFestUrl = FileChecksum.cutFront(filePath, "\\", 3);
-	
-		    	        FileWriter fileWriter = new FileWriter(bagitPath + "\\opus_" + id +"\\manifest-" + selectedChecksumLow +".txt");
-		    	        PrintWriter printWriter = new PrintWriter(fileWriter);
-		    	        printWriter.println(checksum + "  data/" + maniFestUrl);
-		    	        k++;
-		    	        while (urlElement.getElementsByTagName("dc:identifier").item(k) != null) {
-			        		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
-			        		filename = FileChecksum.cutFront(url, "/", 5);
-			        		filePath = bagitPath + "\\opus_" + id + "\\data\\" + filename;
-			        		
-			    			//Create checksum for this file
-			    			file = new File(bagitPath + "\\opus_" + id + "\\data\\" + filename);
-			    			 
-			    			//Use selected algorithm
-			    			sumDigest = MessageDigest.getInstance(selectedChecksum);
-			    			 
-			    			//Get the checksum
-			    			checksum = getFileChecksum(sumDigest, file);
-			    			 			    			
-			    	        // Write content in File
-			    			maniFestUrl = FileChecksum.cutFront(filePath, "\\", 3);
-		    	        	printWriter.println(checksum + "  data/" + maniFestUrl);
-		    	        	k++;
-		    	        }
-		    	        printWriter.close();
-		        	}
+	        	// Call method writeCsInFile for one BagIt or all
+	        	if (opusId != null && id.equals(opusId)) { 
+	        		FileChecksum.writeCsInFile(urlElement, selectedChecksum, id, bagitPath);
+	        	} 
+	        	else if (opusId == null) {
+	        		FileChecksum.writeCsInFile(urlElement, selectedChecksum, id, bagitPath);		        	
 	        	}
 	        }
 
 	    }	
 	}
 	
-	
-	public static void generateFileChecksumAll(int fileCount, String selectedChecksum, String xmlPath, String bagitPath) throws Exception {
-		
-		File inputFile = new File(xmlPath + "\\opusMetaData_" + fileCount + ".xml");
-	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-	    Document doc = dBuilder.parse(inputFile);
-	    doc.getDocumentElement().normalize();
-	    NodeList nList = doc.getElementsByTagName("record");
-	    
+	// Writer
+	public static void writeCsInFile(Element urlElement, String selectedChecksum, String id, String bagitPath) throws IOException, Exception {
 	    String url = null;
-		String id = null;
 		String filename = null;
 		String selectedChecksumLow = selectedChecksum.toLowerCase();
-				
-		// Write content in File
-	    for (int temp = 0; temp < nList.getLength(); temp++) {
-	    	
-	    	Node nNode = nList.item(temp);
-		    Element idElement = (Element) nNode;
-		    Element urlElement = (Element) nNode;
-		    
-	    	// Get OPUS identifier content
-		    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-	        	
-	        	if (idElement.getElementsByTagName("identifier").item(0) != null){
-	        		id = idElement.getElementsByTagName("identifier").item(0).getTextContent();
-	        		id = FileChecksum.cutFront(id, ":", 2);
-	        	}            
-	        	
-	        	// Get content and write in file
-	        	
-	        	// Get number of files
-	        	int n = 0;
-	        	while (urlElement.getElementsByTagName("dc:format").item(n) != null){
-	        		n++;
-	        	}
-	        	int m = 0;
-	        	while (urlElement.getElementsByTagName("dc:identifier").item(m) != null){
-	        		m++;
-	        	}
-	        	int k=m-n;
-	        	
-	        	// Get url content
-	        	if (urlElement.getElementsByTagName("dc:identifier").item(k) != null) {
-	        		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
-	        		filename = FileChecksum.cutFront(url, "/", 5);
-	        		String filePath = "\\opus_" + id + "\\data\\" + filename;
-	    			
-	    			//Create checksum for this file
-	    			File file = new File(bagitPath + "\\opus_" + id + "\\data\\" + filename);
-	    			 
-	    			//Use MD5 algorithm
-	    			MessageDigest sumDigest = MessageDigest.getInstance(selectedChecksum);
-	    			 
-	    			//Get the checksum
-	    			String checksum = getFileChecksum(sumDigest, file);
-	    			
-	    	        // Write content in File
-	    			String maniFestUrl = FileChecksum.cutFront(filePath, "\\", 3);
+		
+		// Get content and write in file
+    	
+		// Get number of files
+    	int n = 0;
+    	while (urlElement.getElementsByTagName("dc:format").item(n) != null){
+    		n++;
+    	}
+    	int m = 0;
+    	while (urlElement.getElementsByTagName("dc:identifier").item(m) != null){
+    		m++;
+    	}
+    	int k=m-n;
+    	
+    	// Get url content
+    	if (urlElement.getElementsByTagName("dc:identifier").item(k) != null) {
+    		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
+    		filename = FileChecksum.cutFront(url, "/", 5).replace("%20", " ");
+    		String filePath = "\\opus_" + id + "\\data\\" + filename;
+			
+			//Create checksum for this file
+			File file = new File(bagitPath + "\\opus_" + id + "\\data\\" + filename);
+			 
+			//Use selected algorithm
+			MessageDigest sumDigest = MessageDigest.getInstance(selectedChecksum);
+			 
+			//Get the checksum
+			String checksum = getFileChecksum(sumDigest, file);
+			 		    			
+	        // Write content in File
+			String maniFestUrl = FileChecksum.cutFront(filePath, "\\", 3);
 
-	    	        FileWriter fileWriter = new FileWriter(bagitPath + "\\opus_" + id +"\\manifest-" + selectedChecksumLow + ".txt");
-	    	        PrintWriter printWriter = new PrintWriter(fileWriter);
-	    	        printWriter.println(checksum + "  data/" + maniFestUrl);
-	    	        k++;
-	    	        while (urlElement.getElementsByTagName("dc:identifier").item(k) != null) {
-		        		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
-		        		filename = FileChecksum.cutFront(url, "/", 5);
-		        		filePath = bagitPath + "\\opus_" + id + "\\data\\" + filename;
-		        		
-		    			//Create checksum for this file
-		    			file = new File(bagitPath + "\\opus_" + id + "\\data\\" + filename);
-		    			 
-		    			//Use selected algorithm
-		    			sumDigest = MessageDigest.getInstance(selectedChecksum);
-		    			 
-		    			//Get the checksum
-		    			checksum = getFileChecksum(sumDigest, file);
-		    			 
-		    	        // Write content in File
-		    			maniFestUrl = FileChecksum.cutFront(filePath, "\\", 3);
-	    	        	printWriter.println(checksum + "  data/" + maniFestUrl);
-	    	        	k++;
-	    	        }
-	    	        printWriter.close();
-	        	}
-	        	
+	        FileWriter fileWriter = new FileWriter(bagitPath + "\\opus_" + id +"\\manifest-" + selectedChecksumLow +".txt");
+	        PrintWriter printWriter = new PrintWriter(fileWriter);
+	        printWriter.println(checksum + "  data/" + maniFestUrl);
+	        k++;
+	        while (urlElement.getElementsByTagName("dc:identifier").item(k) != null) {
+        		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
+        		filename = FileChecksum.cutFront(url, "/", 5);
+        		filePath = bagitPath + "\\opus_" + id + "\\data\\" + filename;
+        		
+    			//Create checksum for this file
+    			file = new File(bagitPath + "\\opus_" + id + "\\data\\" + filename);
+    			 
+    			//Use selected algorithm
+    			sumDigest = MessageDigest.getInstance(selectedChecksum);
+    			 
+    			//Get the checksum
+    			checksum = getFileChecksum(sumDigest, file);
+    			 			    			
+    	        // Write content in File
+    			maniFestUrl = FileChecksum.cutFront(filePath, "\\", 3);
+	        	printWriter.println(checksum + "  data/" + maniFestUrl);
+	        	k++;
 	        }
+	        printWriter.close();
+    	}
+	}
 
-	    }	
-	} 
-	
 	// The method cut a given String returns a partial string starting from a certain position of a separator sign.
 	public static String cutFront(String text, String sign, int number) {
         for (int i = 0; i < number; i++) {
@@ -214,29 +132,28 @@ public class FileChecksum {
         }
         return text;
     }
-	
+
+	// Generate file-checksum
 	private static String getFileChecksum(MessageDigest digest, File file) throws IOException
 	{
-	  //Get file input stream for reading the file content
+	  // Get file input stream for reading the file content
 	  FileInputStream fis = new FileInputStream(file);
 	   
-	  //Create byte array to read data in chunks
+	  // Create byte array to read data in chunks
 	  byte[] byteArray = new byte[1024];
 	  int bytesCount = 0; 
 	    
-	  //Read file data and update in message digest
+	  // Read file data and update in message digest
 	  while ((bytesCount = fis.read(byteArray)) != -1) {
 	    digest.update(byteArray, 0, bytesCount);
 	  };
 	   
-	  //close the stream; We don't need it now.
 	  fis.close();
 	   
-	  //Get the hash's bytes
+	  // Get the hash's bytes
 	  byte[] bytes = digest.digest();
 	   
-	  //This bytes[] has bytes in decimal format;
-	  //Convert it to hexadecimal format
+	  // Convert bytes[] from decimal to hexadecimal format
 	  StringBuilder sb = new StringBuilder();
 	  for(int i=0; i< bytes.length ;i++)
 	  {
