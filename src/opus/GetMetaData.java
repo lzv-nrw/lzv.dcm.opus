@@ -28,7 +28,7 @@ import org.w3c.dom.Text;
 public class GetMetaData {
 
 	public static void getRequest(String url, String dir) throws IOException, Exception {
-		
+
 		URL urlForGetRequest = new URL(url +"oai?verb=ListRecords&metadataPrefix=oai_dc");
 	    String readLine = null;
 	    HttpURLConnection conection = (HttpURLConnection) urlForGetRequest.openConnection();

@@ -42,28 +42,28 @@ public class ClientGui {
 	URL urlBgImg, urlIcImg, urlLoadImg;
 	ImageIcon backgroundImg, iconImg, loadImg;
 	
-	GridBagConstraints constraints;
+	static GridBagConstraints constraints;
 	GridBagLayout layout;
 	
-	JButton getMetadataButton, openXMLDirButton, selectXMLDirButton, createBagitButton, openBagitDirButton;
-	JCheckBox selectAllId;
+	JButton getMetadataButton, openXMLDirButton, selectXMLDirButton, selectBagitDirButton, createBagitButton, createMetsButton,  openBagitDirButton, openMetsDirButton;
+	JCheckBox bagSelectAllId, metsSelectAllId;
 	JFileChooser chooseFolder;
-	JLabel labelOPUS, labelResultXML, labelResultBagits, labelSelectetXmlDir, labelSelectOpusId;
+	JLabel labelOPUS, labelResultXML, labelResultBagits, labelResultMets, labelSelectetXmlDir, labelSelectOpusId, labelSelectChecksum;
 	JMenuBar bar;
-	JPanel extractPanel, bagitPanel;
+	JPanel extractPanel, bagitPanel, metsPanel;
 	JTabbedPane tabPane;
-	JTextField opusIdField;
+	JTextField bagOpusIdField, metsOpusIdField;
 
 	String[] arrayOPUS;
-	JComboBox<String> instancesOPUS, selectChecksum;
+	JComboBox<String> instancesOPUS, instancesBagit, instancesMETS, selectChecksum;
 	
 	static int selectedIndex;
 	static String[] selectedInstance;
 	String selectedChecksum;
 	File xmlDirectory;
-	File bagitDirectory;
-	String xmlDirectoryPath;
-	String bagitPath;
+	File bagitDirectory, metsDirectory;
+	String xmlDirectoryPath, bagitDirectoryPath;
+	String bagitPath, metsPath;
 
 	public void generateGui() throws Exception {
 
@@ -96,10 +96,12 @@ public class ClientGui {
 		UIManager.put("ComboBox.font", normalFont);
 		UIManager.put("Button.font", bigFont);
 		UIManager.put("CheckBox.font", bigFont);
-		
+		UIManager.put("TextField.font", bigFont);
+
 		// Create panels
 		this.extractPanel();
 		this.bagitPanel();
+		this.metsPanel();
         		
 		// Create JTabbedPane
 		UIManager.put("TabbedPane.selected", tabColor);
@@ -108,6 +110,7 @@ public class ClientGui {
 		// Add JPanels as tabs
         tabPane.addTab("Extrahiere Metadaten aus OPUS", extractPanel);
         tabPane.addTab("Erstelle BagIts", bagitPanel);
+        tabPane.addTab("Erstelle Limited-METS", metsPanel);
 		guiFrame.add(tabPane);
 
         // Visibility of the frame
@@ -136,22 +139,23 @@ public class ClientGui {
 		labelOPUS.setHorizontalAlignment(JLabel.CENTER);
 		labelOPUS.setVerticalAlignment(JLabel.BOTTOM);
 
-		this.setContrain(0, 0, 0, 10, 2);
-		constraints.insets = new Insets(5, 0, 10, 0);
+		ClientGui.setContrain(0, 0, 0, 10, 2, 4);
+		constraints.insets = new Insets(-60, 0, 0, 0);
 		extractPanel.add(labelOPUS, constraints);
 		
 		arrayOPUS = ClientGui.getOPUSArray();
 		instancesOPUS = new JComboBox<String>(arrayOPUS);
 		instancesOPUS.setBackground(Color.WHITE);
 
-		this.setContrain(0, 1, 0, 10, 1);
+		ClientGui.setContrain(0, 1, 0, 10, 1, 4);
 		constraints.weighty = 0;
-		constraints.insets = new Insets(5, 5, 5, 5);
+		constraints.insets = new Insets(0, 0, 0, 0);
 		extractPanel.add(instancesOPUS, constraints);
 
 		// Button for summit ComboBox
 		getMetadataButton = new JButton("Extrahieren");
-		this.setContrain(1, 1, 10, 10, 1);
+		ClientGui.setContrain(1, 1, 10, 10, 1, 4);
+		constraints.insets = new Insets(0, 10, 0, 0);
 		extractPanel.add(getMetadataButton, constraints);
 
 		// Label for XML result
@@ -159,19 +163,19 @@ public class ClientGui {
 		labelResultXML.setHorizontalAlignment(JLabel.CENTER);
 		labelResultXML.setVerticalAlignment(JLabel.TOP);
 
-		this.setContrain(0, 2, 5, 5, 2);
-		constraints.insets = new Insets(20, 0, 10, 0);
+		ClientGui.setContrain(0, 2, 5, 5, 2, 4);
+		constraints.insets = new Insets(60, 0, 0, 0);
 		extractPanel.add(labelResultXML, constraints);
 		
 		// Button for open XML directory
-		openXMLDirButton = new JButton("");
+		openXMLDirButton = new JButton(" ");
 		openXMLDirButton.setBackground(panelColor);
 		openXMLDirButton.setForeground(panelColor);
 		openXMLDirButton.setBorderPainted(false);
 		openXMLDirButton.setEnabled(false);
 		
-		this.setContrain(0, 3, 5, 10, 2);
-		constraints.insets = new Insets(0, 0, 70, 0);
+		ClientGui.setContrain(0, 3, 5, 10, 2, 4);
+		constraints.insets = new Insets(90, 0, 0, 0);
 		extractPanel.add(openXMLDirButton, constraints);	
 		
 		// Button action for extract
@@ -220,7 +224,7 @@ public class ClientGui {
 	
 	// Panel for creating BagIts
 	@SuppressWarnings("serial")
-	public void bagitPanel() {
+	public void bagitPanel() throws Exception {
 		constraints = new GridBagConstraints();
 		layout = new GridBagLayout();
         bagitPanel = new JPanel() {
@@ -234,60 +238,71 @@ public class ClientGui {
 		layout.setConstraints(bagitPanel, constraints);
 		bagitPanel.setLayout(layout);
 		
-		// Button for directory select
-		selectXMLDirButton = new JButton("XML-Verzeichnis wählen");
+		// ComboBox with Label for OPUS instances	
+		labelOPUS = new JLabel("Bitte wählen Sie eine OPUS Instanz aus");    
+		labelOPUS.setHorizontalAlignment(JLabel.CENTER);
+		labelOPUS.setVerticalAlignment(JLabel.BOTTOM);
 
-		this.setContrain(1, 0, 0, 10, 1);
-		constraints.insets = new Insets(20, 0, 5, 0);
-		bagitPanel.add(selectXMLDirButton, constraints);
+		ClientGui.setContrain(1, 0, 0, 10, 3, 6);
+		constraints.insets = new Insets(-20, 0, 0, 0);
+		bagitPanel.add(labelOPUS, constraints);
+		
+		arrayOPUS = ClientGui.getOPUSArray();
+		instancesBagit = new JComboBox<String>(arrayOPUS);
+		instancesBagit.setBackground(Color.WHITE);
+		
+		ClientGui.setContrain(1, 1, 0, 10, 3, 6);
+		constraints.weighty = 0;
+		constraints.insets = new Insets(20, 0, 0, 0);
+		bagitPanel.add(instancesBagit, constraints);
 		
 		// Label for selecting Opus-Id
-		labelSelectOpusId = new JLabel("OPUS-Id wählen: ");
+		labelSelectOpusId = new JLabel("OPUS-Id: ");
 		
-		this.setContrain(0, 2, 0, 10, 2);
-		constraints.insets = new Insets(0, 0, 0, 175);
+		ClientGui.setContrain(1, 2, 0, 10, 3, 6);
+		constraints.insets = new Insets(70, -140, 0, 0);
 		bagitPanel.add(labelSelectOpusId, constraints);		
 		
 		// TextField to select Opus-Id
-		opusIdField = new JTextField(5);
+		bagOpusIdField = new JTextField(5);
 
-		this.setContrain(1, 2, 0, 10, 1);
-		constraints.insets = new Insets(0, 0, 0, 0);
-		opusIdField.setEditable(false);
-		bagitPanel.add(opusIdField, constraints);
+		ClientGui.setContrain(2, 2, 0, 10, 3, 6);
+		constraints.insets = new Insets(70, -10, 0, 0);
+		bagOpusIdField.setEditable(true);
+		bagitPanel.add(bagOpusIdField, constraints);
 		
-		// CheckBox to select Opus-Id
-		selectAllId = new JCheckBox("Alle");
-		selectAllId.setBackground(Color.white);
-		selectAllId.setEnabled(false);
-		selectAllId.setOpaque(true);
+		// CheckBox to select all Opus-Id
+		bagSelectAllId = new JCheckBox("Alle");
+		bagSelectAllId.setBackground(Color.white);
+		bagSelectAllId.setEnabled(true);
+		bagSelectAllId.setOpaque(true);
 		
-		this.setContrain(2, 2, 0, 5, 2);
-		constraints.insets = new Insets(20, -100, 20, 0);
-		bagitPanel.add(selectAllId, constraints);
+		ClientGui.setContrain(3, 2, 0, 5, 3, 6);
+		constraints.insets = new Insets(70, 120, 0, 0);
+		bagitPanel.add(bagSelectAllId, constraints);
 		
 		// Label for selecting checksum
-		labelSelectOpusId = new JLabel("Wähle Checksummen-Verfahren: ");
+		labelSelectChecksum = new JLabel("Checksummen-Verfahren: ");
 
-		this.setContrain(0, 3, 0, 10, 0);
-		constraints.insets = new Insets(0, 0, 0, 65);
-		bagitPanel.add(labelSelectOpusId, constraints);			
+		ClientGui.setContrain(2, 3, 0, 10, 3, 6);
+		constraints.insets = new Insets(120, -240, 0, 0);
+		bagitPanel.add(labelSelectChecksum, constraints);			
 		
 		// ComboBox for checksum
 		String[] arrayChecksum = {"SHA1", "SHA256", "MD5"};
 		selectChecksum = new JComboBox<String>(arrayChecksum);
 		selectChecksum.setBackground(Color.WHITE);
 
-		this.setContrain(1, 3, 0, 5, 1);
-		constraints.insets = new Insets(0, 250, 0, 0);
+		ClientGui.setContrain(1, 3, 0, 10, 3, 6);
+		constraints.insets = new Insets(120, 40, 0, 0);
 		bagitPanel.add(selectChecksum, constraints);
 		
 		// Button for create BagIts
 		createBagitButton = new JButton("BagIts erstellen");
 		
-		this.setContrain(1, 4, 0, 10, 1);
-		constraints.insets = new Insets(20, 0, 20, 0);
-		createBagitButton.setEnabled(false);
+		ClientGui.setContrain(3, 3, 0, 10, 3, 6);
+		constraints.insets = new Insets(120, 290, 0, 0);
+		createBagitButton.setEnabled(true);
 		bagitPanel.add(createBagitButton, constraints);
 		
 		// Label for BagIt result
@@ -296,77 +311,54 @@ public class ClientGui {
 		labelResultBagits.setVerticalAlignment(JLabel.TOP);
 		labelResultBagits.setForeground(null);
 
-		this.setContrain(1, 5, 0, 10, 1);
-		constraints.insets = new Insets(0, 0, 0, 0);
+		ClientGui.setContrain(1, 5, 0, 10, 3, 6);
+		constraints.insets = new Insets(180, 0, 0, 0);
 		bagitPanel.add(labelResultBagits, constraints);	
 		
 		// Button for open BagIt directory
-		openBagitDirButton = new JButton("");
+		openBagitDirButton = new JButton(" ");
 		openBagitDirButton.setBackground(panelColor);
 		openBagitDirButton.setForeground(panelColor);
 		openBagitDirButton.setBorderPainted(false);
 		openBagitDirButton.setEnabled(false);
 
-		this.setContrain(1, 6, 0, 10, 1);
-		constraints.insets = new Insets(10, 0, 20, 0);
+		ClientGui.setContrain(1, 6, 0, 10, 3, 6);
+		constraints.insets = new Insets(200, 0, 0, 0);
 		bagitPanel.add(openBagitDirButton, constraints);
 		
-		// Button action for select XML directory
-		selectXMLDirButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String chooserTitle = "XML-Verzeichnis wählen";
-				try {
-					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-						| UnsupportedLookAndFeelException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				chooseFolder = new JFileChooser(); 
-				chooseFolder.setCurrentDirectory(new java.io.File("./opus_resources/"));
-				chooseFolder.setDialogTitle(chooserTitle);
-				chooseFolder.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				chooseFolder.setAcceptAllFileFilterUsed(true);
-				
-				if (chooseFolder.showOpenDialog(selectXMLDirButton) == JFileChooser.APPROVE_OPTION) {					
-					xmlDirectory = chooseFolder.getSelectedFile();
-					xmlDirectoryPath = xmlDirectory.getPath();
-				}
-				ClientGui.setLook();
-				createBagitButton.setEnabled(true);
-				opusIdField.setEditable(true);
-				selectAllId.setEnabled(true);
-			}
-		});
 		
 		// Button action for creating BagIts
 		createBagitButton.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
-				bagitPath = cutBack(xmlDirectoryPath, "metadata", 1) + "bagits";
-				File bagitOutput = new File(bagitPath);
-				bagitOutput.mkdirs();
+				
+	        	selectedIndex = instancesBagit.getSelectedIndex();
+	        	selectedInstance = ClientGui.selectedInstance();
+	        	String dir = selectedInstance[1];
+				
+	        	bagitPath = "opus_resources\\" + dir + "\\bagits";
 				
 				// Get number of XML-files
-				int fileCount = xmlDirectory.list().length;
+	        	String xmlPath = "opus_resources\\" + dir + "\\metadata"; 
+	        	xmlDirectory = new File(xmlPath);
+				String xmlFiles [] = xmlDirectory.list();
 				
 				//  Get value of opusIdField
-				String opusId = opusIdField.getText();
-				if (opusId.equals("")){
+				String opusId = bagOpusIdField.getText();
+				if (opusId.equals("") && bagSelectAllId.isSelected()){
 					opusId = null;
 				}
 				
 				selectedIndex = selectChecksum.getSelectedIndex() ;
 				selectedChecksum = arrayChecksum[selectedIndex];
-				
+
 				// Creates BagIts with help of the XML-files, one or all
-				for (int i = 0; i < fileCount; i++ ) {
+				for (int i = 0; i < xmlFiles.length; i++ ) {
 					try {
 						File test = null;
-						DownloadFile.download(opusId, i, xmlDirectoryPath, bagitPath);
-						BagInfo.writeBagInfo(opusId, i, xmlDirectoryPath, bagitPath);
-						BagitTxt.bagitText(opusId, i, xmlDirectoryPath, bagitPath);
-						FileChecksum.generateFileChecksum(opusId, i, selectedChecksum, xmlDirectoryPath, bagitPath);
+						DownloadFile.download(dir, opusId, i);
+						BagInfo.writeBagInfo(dir, opusId, i);
+						BagitTxt.bagitText(dir, opusId, i);
+						FileChecksum.generateFileChecksum(dir, opusId, i, selectedChecksum);
 						
 						if (opusId != null) {
 							test = new File(bagitPath + "\\opus_" + opusId);
@@ -389,7 +381,7 @@ public class ClientGui {
 						}
 						else {
 							labelResultBagits.setForeground(Color.red);
-							labelResultBagits.setText("Ergebnis: Bitte gültige OPUS-Id eingeben.");
+							labelResultBagits.setText("Ergebnis: Bitte Eingabe überprüfen.");
 						}
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
@@ -419,6 +411,155 @@ public class ClientGui {
 		});	
 	}
 	
+	
+	// Panel for creating METS
+	@SuppressWarnings("serial")
+	public void metsPanel() throws Exception {
+		constraints = new GridBagConstraints();
+		layout = new GridBagLayout();
+		metsPanel = new JPanel() {
+			protected void paintComponent(Graphics g)
+			{
+				g.drawImage((backgroundImg).getImage(), -40, -95, null);
+				super.paintComponent(g);
+			}
+		};
+		metsPanel.setOpaque(false);
+		layout.setConstraints(metsPanel, constraints);
+		metsPanel.setLayout(layout);
+			
+		// ComboBox with Label for OPUS instances	
+		labelOPUS = new JLabel("Bitte wählen Sie eine OPUS Instanz aus");    
+		labelOPUS.setHorizontalAlignment(JLabel.CENTER);
+		labelOPUS.setVerticalAlignment(JLabel.BOTTOM);
+
+		ClientGui.setContrain(1, 0, 0, 10, 3, 4);
+		constraints.insets = new Insets(-80, 0, 0, 0);
+		metsPanel.add(labelOPUS, constraints);
+		
+		arrayOPUS = ClientGui.getOPUSArray();
+		instancesMETS = new JComboBox<String>(arrayOPUS);
+		instancesMETS.setBackground(Color.WHITE);
+		
+		ClientGui.setContrain(1, 1, 0, 10, 3, 4);
+		constraints.weighty = 0;
+		constraints.insets = new Insets(-15, 0, 0, 0);
+		metsPanel.add(instancesMETS, constraints);
+		
+		// Label for selecting Opus-Id
+		labelSelectOpusId = new JLabel("OPUS-Id: ");
+		
+		ClientGui.setContrain(0, 2, 0, 10, 3, 4);
+		constraints.insets = new Insets(30, 70, 0, 0);
+		metsPanel.add(labelSelectOpusId, constraints);		
+		
+		// TextField to select Opus-Id
+		metsOpusIdField = new JTextField(5);
+
+		ClientGui.setContrain(1, 2, 0, 10, 3, 4);
+		constraints.insets = new Insets(30, -210, 0, 0);
+		metsOpusIdField.setEditable(true);
+		metsPanel.add(metsOpusIdField, constraints);
+		
+		// CheckBox to select all Opus-Id
+		metsSelectAllId = new JCheckBox("Alle");
+		metsSelectAllId.setBackground(Color.white);
+		metsSelectAllId.setEnabled(true);
+		metsSelectAllId.setOpaque(true);
+		
+		ClientGui.setContrain(2, 2, 0, 5, 3, 4);
+		constraints.insets = new Insets(30, -80, 0, 0);
+		metsPanel.add(metsSelectAllId, constraints);
+		
+		// Button for create METS
+		createMetsButton = new JButton("METS erstellen");
+		
+		ClientGui.setContrain(1, 2, 0, 10, 3, 4);
+		constraints.insets = new Insets(30, 290, 0, 0);
+		createMetsButton.setEnabled(true);
+		metsPanel.add(createMetsButton, constraints);
+		
+		// Label for METS result
+		labelResultMets = new JLabel("Ergebnis: ");
+		labelResultMets.setForeground(null);
+
+		ClientGui.setContrain(1, 4, 0, 10, 3, 4);
+		constraints.insets = new Insets(90, 0, 0, 0);
+		metsPanel.add(labelResultMets, constraints);	
+		
+		// Button for open METS directory
+		openMetsDirButton = new JButton(" ");
+		openMetsDirButton.setBackground(panelColor);
+		openMetsDirButton.setForeground(panelColor);
+		openMetsDirButton.setBorderPainted(false);
+		openMetsDirButton.setEnabled(false);
+
+		ClientGui.setContrain(1, 5, 0, 10, 3, 4);
+		constraints.insets = new Insets(110, 0, 0, 0);
+		metsPanel.add(openMetsDirButton, constraints);
+
+		// Button action for creating METS
+		createMetsButton.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+	        	selectedIndex = instancesMETS.getSelectedIndex();
+	        	selectedInstance = ClientGui.selectedInstance();
+				
+				//  Get value of opusIdField
+				String opusId = metsOpusIdField.getText();
+				if (opusId.equals("") && metsSelectAllId.isSelected()){
+					opusId = null;
+				}
+									
+				// Creates METS
+				try {				
+				CopyFilesMETS.copyFiles(selectedInstance[1], opusId);
+				BuildMets.generateMets(selectedInstance[1], opusId);
+				
+				ClientGui.setLook();
+				labelResultMets.setForeground(Color.black);
+				openMetsDirButton.setText("METS-Verzeichnis öffnen");
+				openMetsDirButton.setBackground(null);
+				openMetsDirButton.setForeground(Color.black);
+				openMetsDirButton.setBorderPainted(true);
+				openMetsDirButton.setEnabled(true);
+				if (opusId == null && metsSelectAllId.isSelected()) {
+					labelResultMets.setText("Ergebnis: Limited-METS erfolgreich erstellt.");	
+				} 
+				else {
+					labelResultMets.setText("Ergebnis: Limited-METS von OPUS-Id " + opusId + " erfolgreich erstellt.");
+				}
+				
+				metsPath = "opus_resources\\" + selectedInstance[1] + "\\mets\\";
+				metsDirectory = new File(metsPath);
+				
+				} catch (Exception e1) {
+					labelResultMets.setForeground(Color.red);
+					labelResultMets.setText("Ergebnis: Bitte Eingabe überprüfen.");
+					e1.printStackTrace();
+				}
+			}
+		});	
+		
+		// Button action for open METS directory
+		openMetsDirButton.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+	    	    //Open directory
+	        	Desktop desktop = null;
+	        	try {
+	        	      if (Desktop.isDesktopSupported()) {
+	        	         desktop = Desktop.getDesktop();
+	        	         desktop.open(metsDirectory);
+	        	      }
+	        	      else {
+	        	         System.out.println("Desktop is not supported");
+	        	      }
+	        	}	
+	        	catch (IOException e2){  }
+		       }
+		});	
+	}		
+			
 	
 	public static void setLook() {
 		try {
@@ -484,21 +625,14 @@ public class ClientGui {
 	}
 	
 	// Method to set constraints values
-	public GridBagConstraints setContrain(int gridx, int gridy, int ipadx, int ipady, int gridWidth) {
+	public static GridBagConstraints setContrain(int gridx, int gridy, int ipadx, int ipady, int gridWidth, int gridheight) {
 		constraints = new GridBagConstraints();
 		constraints.gridx = gridx;
 		constraints.gridy = gridy;
 		constraints.ipadx = ipadx;
 		constraints.ipady = ipady;
 		constraints.gridwidth = gridWidth;
+		constraints.gridheight = gridheight;
 		return constraints;
 	}
-	
-	// The method cut a given String returns a partial string starting from a certain position of a separator sign.
-    public String cutBack(String text, String sign, int number) {
-        for (int i = 0; i < number; i++) {
-        	text = text.substring(0, text.lastIndexOf(sign));
-        }
-        return text;
-    }
 }

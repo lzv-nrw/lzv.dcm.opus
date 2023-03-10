@@ -21,9 +21,11 @@ import org.w3c.dom.NodeList;
  */
 public class BagitTxt {
 	
-	public static void bagitText(String opusId, int fileCount, String xmlPath, String bagitPath) throws IOException, Exception {
+	public static void bagitText(String dir, String opusId, int fileCount) throws IOException, Exception {
 		
-		File inputFile = new File(xmlPath + "\\opusMetaData_" + fileCount + ".xml");
+		String sourceDirectory = "opus_resources\\" + dir + "\\metadata";
+		
+		File inputFile = new File(sourceDirectory + "\\opusMetaData_" + fileCount + ".xml");
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 	    Document doc = dBuilder.parse(inputFile);
@@ -43,24 +45,25 @@ public class BagitTxt {
 		    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 	        	if (idElement.getElementsByTagName("identifier").item(0) != null){
 	        		id = idElement.getElementsByTagName("identifier").item(0).getTextContent();
-	        		id = DownloadFile.cutFront(id, ":", 2);
+	        		id = StringCutter.cutFront(id, ":", 2);
 	        	}            
 	        
 	        	// Call method writeInFile for one BagIt or all
 	        	if (opusId != null && id.equals(opusId)) { 
-		        	BagitTxt.writeInFile(urlElement, id, bagitPath);
+		        	BagitTxt.writeInFile(urlElement, id, dir);
 	        	} 
 	        	else if (opusId == null) {
-	        		BagitTxt.writeInFile(urlElement, id, bagitPath);		        	
+	        		BagitTxt.writeInFile(urlElement, id, dir);		        	
 	        	}
 	        }
 	    }
 	}
 	
 	// Writer
-	public static void writeInFile(Element urlElement, String id, String bagitPath) throws IOException {
+	public static void writeInFile(Element urlElement, String id, String dir) throws IOException {
 		if (urlElement.getElementsByTagName("dc:identifier").item(1) != null) {
-	        FileWriter fileWriter = new FileWriter(bagitPath + "\\opus_" + id + "\\bagit.txt");
+			String bagitPath = "opus_resources\\" + dir + "\\bagits\\opus_" + id;
+	        FileWriter fileWriter = new FileWriter(bagitPath + "\\bagit.txt");
 	        PrintWriter printWriter = new PrintWriter(fileWriter);
 	        printWriter.println("BagIt-Version: 1.0");
 	        printWriter.println("Tag-File-Character-Encoding: UTF-8");
