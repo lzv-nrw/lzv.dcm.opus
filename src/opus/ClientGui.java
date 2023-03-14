@@ -6,7 +6,6 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Properties;
 
 import javax.swing.*;
 
@@ -559,11 +558,9 @@ public class ClientGui {
 	// Load properties file
 	public static LinkedHashMap<String,String> loadProperties() throws Exception {
         LinkedHashMap<String,String> lhMap = new LinkedHashMap<>();
-        Properties props = new Properties();
-        props.load(ClientGui.class.getResourceAsStream("/conf/config.properties"));
        
-        //Reader prReader = new FileReader("src/conf/config.properties");
-		BufferedReader br = new BufferedReader(new InputStreamReader(ClientGui.class.getResourceAsStream("/conf/config.properties")));
+        InputStreamReader isr = new InputStreamReader(ClientGui.class.getResourceAsStream("/conf/config.properties"), "UTF8");
+		BufferedReader br = new BufferedReader(isr);
 		String line = null;
 		while((line=br.readLine())!=null) {
 			String[] keyValue = line.split("=");
