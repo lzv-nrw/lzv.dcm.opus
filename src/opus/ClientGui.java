@@ -1,30 +1,14 @@
 package opus;
 
-import java.awt.Color;
-import java.awt.Desktop;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Properties;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
 /**
  * Generte Gui
@@ -39,17 +23,16 @@ public class ClientGui {
 	Color barColor = new Color(25, 45, 70);
 	Color panelColor = new Color(219, 244, 255);
 	Color tabColor = new Color(240, 130, 35);
-	URL urlBgImg, urlIcImg, urlLoadImg;
-	ImageIcon backgroundImg, iconImg, loadImg;
+	URL urlBgImg, urlIcImg;
+	ImageIcon backgroundImg, iconImg;
 	
 	static GridBagConstraints constraints;
 	GridBagLayout layout;
 	
-	JButton getMetadataButton, openXMLDirButton, selectXMLDirButton, selectBagitDirButton, createBagitButton, createMetsButton,  openBagitDirButton, openMetsDirButton;
+	JButton getMetadataButton, openXMLDirButton, createBagitButton, createMetsButton,  openBagitDirButton, openMetsDirButton;
 	JCheckBox bagSelectAllId, metsSelectAllId;
 	JFileChooser chooseFolder;
-	JLabel labelOPUS, labelResultXML, labelResultBagits, labelResultMets, labelSelectetXmlDir, labelSelectOpusId, labelSelectChecksum;
-	JMenuBar bar;
+	JLabel labelOPUS, labelResultXML, labelResultBagits, labelResultMets, labelSelectOpusId, labelSelectChecksum;
 	JPanel extractPanel, bagitPanel, metsPanel;
 	JTabbedPane tabPane;
 	JTextField bagOpusIdField, metsOpusIdField;
@@ -60,10 +43,8 @@ public class ClientGui {
 	static int selectedIndex;
 	static String[] selectedInstance;
 	String selectedChecksum;
-	File xmlDirectory;
-	File bagitDirectory, metsDirectory;
-	String xmlDirectoryPath, bagitDirectoryPath;
-	String bagitPath, metsPath;
+	File xmlDirectory, bagitDirectory, metsDirectory;
+	String xmlDirectoryPath, bagitDirectoryPath, bagitPath, metsPath;
 
 	public void generateGui() throws Exception {
 
@@ -143,7 +124,7 @@ public class ClientGui {
 		constraints.insets = new Insets(-60, 0, 0, 0);
 		extractPanel.add(labelOPUS, constraints);
 		
-		arrayOPUS = ClientGui.getOPUSArray();
+		arrayOPUS = ClientGui.instanceNames();
 		instancesOPUS = new JComboBox<String>(arrayOPUS);
 		instancesOPUS.setBackground(Color.WHITE);
 
@@ -182,10 +163,10 @@ public class ClientGui {
 		getMetadataButton.addActionListener(new java.awt.event.ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
 	        	selectedIndex = instancesOPUS.getSelectedIndex() ;
-	        	selectedInstance = ClientGui.selectedInstance();
-	        	// Extract metadata from Opus and save in file opusMetaData_i.xml
-	    		try {
-					GetMetaData.getRequest(selectedInstance[0], selectedInstance[1]);
+	        	try {
+					selectedInstance = ClientGui.instanceValues(selectedIndex);
+		        	// Extract metadata from Opus and save in file opusMetaData_i.xml
+					GetMetaData.getRequest(selectedInstance[1], selectedInstance[0]);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -203,8 +184,13 @@ public class ClientGui {
 		// Button action for open XML directory
 		openXMLDirButton.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				selectedInstance = ClientGui.selectedInstance();
-				String dirInstance = selectedInstance[1];
+				try {
+					selectedInstance = ClientGui.instanceValues(selectedIndex);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				String dirInstance = selectedInstance[0];
 	        	File directory = new File("opus_resources\\" + dirInstance + "\\metadata");
 	    	    //Open directory
 	        	Desktop desktop = null;
@@ -247,7 +233,7 @@ public class ClientGui {
 		constraints.insets = new Insets(-20, 0, 0, 0);
 		bagitPanel.add(labelOPUS, constraints);
 		
-		arrayOPUS = ClientGui.getOPUSArray();
+		arrayOPUS = ClientGui.instanceNames();
 		instancesBagit = new JComboBox<String>(arrayOPUS);
 		instancesBagit.setBackground(Color.WHITE);
 		
@@ -332,8 +318,13 @@ public class ClientGui {
 			public void actionPerformed(ActionEvent e) {
 				
 	        	selectedIndex = instancesBagit.getSelectedIndex();
-	        	selectedInstance = ClientGui.selectedInstance();
-	        	String dir = selectedInstance[1];
+	        	try {
+					selectedInstance = ClientGui.instanceValues(selectedIndex);
+				} catch (Exception e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+	        	String dir = selectedInstance[0];
 				
 	        	bagitPath = "opus_resources\\" + dir + "\\bagits";
 				
@@ -437,7 +428,7 @@ public class ClientGui {
 		constraints.insets = new Insets(-80, 0, 0, 0);
 		metsPanel.add(labelOPUS, constraints);
 		
-		arrayOPUS = ClientGui.getOPUSArray();
+		arrayOPUS = ClientGui.instanceNames();
 		instancesMETS = new JComboBox<String>(arrayOPUS);
 		instancesMETS.setBackground(Color.WHITE);
 		
@@ -503,7 +494,12 @@ public class ClientGui {
 			public void actionPerformed(ActionEvent e) {
 				
 	        	selectedIndex = instancesMETS.getSelectedIndex();
-	        	selectedInstance = ClientGui.selectedInstance();
+	        	try {
+					selectedInstance = ClientGui.instanceValues(selectedIndex);
+				} catch (Exception e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
 				
 				//  Get value of opusIdField
 				String opusId = metsOpusIdField.getText();
@@ -513,8 +509,8 @@ public class ClientGui {
 									
 				// Creates METS
 				try {				
-				CopyFilesMETS.copyFiles(selectedInstance[1], opusId);
-				BuildMets.generateMets(selectedInstance[1], opusId);
+				CopyFilesMETS.copyFiles(selectedInstance[0], opusId);
+				BuildMets.generateMets(selectedInstance[0], opusId);
 				
 				ClientGui.setLook();
 				labelResultMets.setForeground(Color.black);
@@ -530,7 +526,7 @@ public class ClientGui {
 					labelResultMets.setText("Ergebnis: Limited-METS von OPUS-Id " + opusId + " erfolgreich erstellt.");
 				}
 				
-				metsPath = "opus_resources\\" + selectedInstance[1] + "\\mets\\";
+				metsPath = "opus_resources\\" + selectedInstance[0] + "\\mets\\";
 				metsDirectory = new File(metsPath);
 				
 				} catch (Exception e1) {
@@ -559,7 +555,58 @@ public class ClientGui {
 		       }
 		});	
 	}		
-			
+	
+	// Load properties file
+	public static LinkedHashMap<String,String> loadProperties() throws Exception {
+        LinkedHashMap<String,String> lhMap = new LinkedHashMap<>();
+        Properties props = new Properties();
+        props.load(ClientGui.class.getResourceAsStream("/conf/config.properties"));
+       
+        //Reader prReader = new FileReader("src/conf/config.properties");
+		BufferedReader br = new BufferedReader(new InputStreamReader(ClientGui.class.getResourceAsStream("/conf/config.properties")));
+		String line = null;
+		while((line=br.readLine())!=null) {
+			String[] keyValue = line.split("=");
+			lhMap.put(keyValue[0], keyValue[1]);
+		}
+		br.close();
+		return lhMap;
+	}
+	
+	/**
+	 * @param index
+	 * @return instanceValue array: dir + url for instances
+	 * @throws Exception
+	 */
+	public static String[] instanceValues(int index) throws Exception {
+		
+		LinkedHashMap<String,String> lhMap = ClientGui.loadProperties();
+		
+		ArrayList<String> dirList = new ArrayList<String>();
+		ArrayList<String> urlList = new ArrayList<String>();
+	
+		for (String key : lhMap.keySet()) {
+			dirList.add(key);
+			urlList.add(StringCutter.cutFront(lhMap.get(key), "_", 1));			
+		}
+		String[] instanceValue = {dirList.get(index), urlList.get(index)};
+		return instanceValue;
+	}
+	
+	// Get names for instances from properties file
+	public static String [] instanceNames() throws Exception {
+		
+		LinkedHashMap<String,String> lhMap = ClientGui.loadProperties();
+		
+		ArrayList<String> nameList = new ArrayList<String>();
+	
+		for (String key : lhMap.keySet()) {
+			nameList.add(StringCutter.cutBack(lhMap.get(key), "_", 1));			
+		}
+		String[] namesArr = new String[nameList.size()];
+		namesArr = nameList.toArray(namesArr);
+		return namesArr;
+	}
 	
 	public static void setLook() {
 		try {
@@ -569,59 +616,6 @@ public class ClientGui {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-	}
-	
-	
-	// Set url and dir for selected index
-	public static String[] selectedInstance() {
-		String url = null;
-		String dir = null;
-    	switch (selectedIndex) {
-        case 0:
-        	url = "https://hbz.opus.hbz-nrw.de/";
-        	dir = "hbz";
-            break;
-        case 1:
-        	url = "https://whge.opus.hbz-nrw.de/";
-        	dir = "whge";
-            break;
-        case 2:
-        	url = "https://kola.opus.hbz-nrw.de/";
-        	dir = "kola";
-            break;
-        case 3:
-        	url = "https://bast.opus.hbz-nrw.de/";
-        	dir = "bast";
-            break;
-        case 4:
-        	url = "https://opus.hfm-detmold.de/";
-        	dir = "hfm-detmold";
-            break;
-        case 5:
-        	url = "https://ubt.opus.hbz-nrw.de/";
-        	dir = "ubt";
-            break;
-        case 6:
-        	url = "https://hst.opus.hbz-nrw.de/";
-        	dir = "hst";
-            break;
-    }
-		String[] instance = {url, dir};
-		return instance;
-	}
-	
-	
-	// Get list of instances 
-	public static String[] getOPUSArray() throws Exception {
-		
-		String[] arrayOPUS = {"OPUS Repository des hbz",
-				"OPUS Repository der Westfälischen Hochschule",
-				"OPUS Universität Koblenz-Landau",
-				"OPUS BASt",
-				"OPUS Hochschulschriftenserver der Hochschule für Musik Detmold",
-				"OPUS UB Trier",
-				"OPUS Hochschule Trier"};
-		return arrayOPUS;
 	}
 	
 	// Method to set constraints values
