@@ -1,15 +1,12 @@
 package opus;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,35 +27,27 @@ public class GetMetaData {
 	public static void getRequest(String url, String dir) throws IOException, Exception {
 
 		URL urlForGetRequest = new URL(url +"oai?verb=ListRecords&metadataPrefix=oai_dc");
-	    String readLine = null;
 	    HttpURLConnection conection = (HttpURLConnection) urlForGetRequest.openConnection();
 	    conection.setRequestMethod("GET");
 	    int responseCode = conection.getResponseCode();
 
-	    BufferedReader in;
-	    StringBuffer response;
-	    PrintWriter printWriter;
-	    OutputStream os;
+	    ReadableByteChannel rbc;
+
+	    FileOutputStream fos;
 	    
+
 	    String resumptionTokenContent = null;
 	    
-	    // Read and write first page
+	    // Download first xml file
 	    if (responseCode == HttpURLConnection.HTTP_OK) {
-	        in = new BufferedReader(new InputStreamReader(conection.getInputStream(), "utf-8"));
-
-	        response = new StringBuffer();
-			String xmlPath = "opus_resources\\" + dir +"\\metadata\\";
-			File xmlOutput = new File(xmlPath);
+	    	rbc = Channels.newChannel(urlForGetRequest.openStream());
+			
+	    	String xmlPath = "opus_resources\\" + dir +"\\metadata\\";
+	    	File xmlOutput = new File(xmlPath);
 			xmlOutput.mkdirs();
-			os = new FileOutputStream(xmlPath + "opusMetaData_0.xml");
-	        printWriter = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
-	        
-	        while ((readLine = in.readLine()) != null) {
-	        	printWriter.println(readLine);	
-	            response.append(readLine);
-	        }
-	        in.close();
-	        printWriter.close();
+			fos = new FileOutputStream(xmlPath + "opusMetaData_0.xml");
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
             
             File inputFile = new File(xmlPath + "opusMetaData_0.xml");
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -69,33 +58,23 @@ public class GetMetaData {
             NodeList nodeList = element.getElementsByTagName("ListRecords");
             Element listRecordsElement = (Element)nodeList.item(0);
             Element resumptionTokenElement = (Element)listRecordsElement.getElementsByTagName("resumptionToken").item(0);
-            Text resumptionTokeContentNode;
+            Text resumptionTokeContentNode = null;
             if (resumptionTokenElement != null) {
             	resumptionTokeContentNode = (Text)resumptionTokenElement.getFirstChild();
-            	resumptionTokenContent = resumptionTokeContentNode.getData();
+            	if (resumptionTokeContentNode != null) {
+            		resumptionTokenContent = resumptionTokeContentNode.getData();
+            	}
             }
 
-            // Read and write next pages
+            // Download next pages
             int i=1;
-            while(resumptionTokenElement != null) {
-            	
+            while(resumptionTokenElement != null && resumptionTokeContentNode != null) {          	
             	urlForGetRequest = new URL(url +"oai?verb=ListRecords&resumptionToken=" + resumptionTokenContent);
-            	readLine = null;
-    		    conection = (HttpURLConnection) urlForGetRequest.openConnection();
-    		    conection.setRequestMethod("GET");
-    		    responseCode = conection.getResponseCode();	
-    		    
-    		    in = new BufferedReader(new InputStreamReader(conection.getInputStream(), "utf-8"));
-    	        response = new StringBuffer();
-    	        os = new FileOutputStream("opus_resources\\" + dir + "\\metadata\\opusMetaData_" + i +".xml");
-    	        printWriter = new PrintWriter(new OutputStreamWriter(os, "UTF-8")); 
-    	        while ((readLine = in.readLine()) != null) {
-    	        	printWriter.println(readLine);	
-    	            response.append(readLine);
-    	        }
-    	        in.close();
-    	        printWriter.close();
-     
+            	rbc = Channels.newChannel(urlForGetRequest.openStream());        
+            	fos = new FileOutputStream(xmlPath + "opusMetaData_" + i +".xml");
+    			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+    			fos.close();
+ 
                 inputFile = new File("opus_resources\\" + dir + "\\metadata\\opusMetaData_" + i + ".xml");
                 dbFactory = DocumentBuilderFactory.newInstance();
                 dBuilder = dbFactory.newDocumentBuilder();
@@ -106,9 +85,11 @@ public class GetMetaData {
 	            listRecordsElement = (Element)nodeList.item(0);
 	            resumptionTokenElement = (Element)listRecordsElement.getElementsByTagName("resumptionToken").item(0);
 	            if(resumptionTokenElement != null) {
-	            resumptionTokeContentNode = (Text)resumptionTokenElement.getFirstChild();
-	            resumptionTokenContent = resumptionTokeContentNode.getData();
-                i++;
+	            	resumptionTokeContentNode = (Text)resumptionTokenElement.getFirstChild();
+	            	if (resumptionTokeContentNode != null) {
+	            		resumptionTokenContent = resumptionTokeContentNode.getData();
+	            		i++;
+	            	}
 	            }
             }
 	    }
