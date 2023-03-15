@@ -2,6 +2,7 @@ package opus;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -19,7 +20,6 @@ public class ClientGui {
 	
 	JFrame guiFrame;
 	
-	Color barColor = new Color(25, 45, 70);
 	Color panelColor = new Color(219, 244, 255);
 	Color tabColor = new Color(240, 130, 35);
 	URL urlBgImg, urlIcImg;
@@ -159,52 +159,59 @@ public class ClientGui {
 		extractPanel.add(openXMLDirButton, constraints);	
 		
 		// Button action for extract
-		getMetadataButton.addActionListener(new java.awt.event.ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
-	        	selectedIndex = instancesOPUS.getSelectedIndex() ;
-	        	try {
-					selectedInstance = ClientGui.instanceValues(selectedIndex);
-		        	// Extract metadata from Opus and save in file opusMetaData_i.xml
-					GetMetaData.getRequest(selectedInstance[1], selectedInstance[0]);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-	    		ClientGui.setLook();
-	    		labelResultXML.setText("Ergebnis: XML-Dateien mit Metadaten erfolgreich erstellt. "); 
-	    		openXMLDirButton.setText("XML-Verzeichnis öffnen");
-	    		openXMLDirButton.setBackground(null);
-	    		openXMLDirButton.setForeground(Color.black);
-	    		openXMLDirButton.setBorderPainted(true);
-	    		openXMLDirButton.setEnabled(true);
-	        }
-	      });
-
+		getMetadataButton.addActionListener(new ExtractListner());
 		// Button action for open XML directory
-		openXMLDirButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					selectedInstance = ClientGui.instanceValues(selectedIndex);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				String dirInstance = selectedInstance[0];
-	        	File directory = new File("opus_resources\\" + dirInstance + "\\metadata");
-	    	    //Open directory
-	        	Desktop desktop = null;
-	        	try {
-	        	      if (Desktop.isDesktopSupported()) {
-	        	         desktop = Desktop.getDesktop();
-	        	         desktop.open(directory);
-	        	      }
-	        	      else {
-	        	         System.out.println("Desktop is not supported");
-	        	      }
-	        	}	
-	        	catch (IOException e2){  }
-		       }
-		});		
+		openXMLDirButton.addActionListener(new XmlDirectoryListner());	
+	}
+	
+	// Button action for extract
+	class ExtractListner implements ActionListener{
+		public void actionPerformed(ActionEvent e){
+        	selectedIndex = instancesOPUS.getSelectedIndex() ;
+        	extractPanel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        	try {
+				selectedInstance = ClientGui.instanceValues(selectedIndex);
+	        	// Extract metadata from Opus and save in file opusMetaData_i.xml
+				GetMetaData.getRequest(selectedInstance[1], selectedInstance[0]);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+    		ClientGui.setLook();
+    		labelResultXML.setText("Ergebnis: XML-Dateien mit Metadaten erfolgreich erstellt. "); 
+    		openXMLDirButton.setText("XML-Verzeichnis öffnen");
+    		openXMLDirButton.setBackground(null);
+    		openXMLDirButton.setForeground(Color.black);
+    		openXMLDirButton.setBorderPainted(true);
+    		openXMLDirButton.setEnabled(true);	
+    		extractPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
+	}
+
+	// Button action for open XML directory
+	class XmlDirectoryListner implements ActionListener{
+		public void actionPerformed(ActionEvent e){
+			try {
+				selectedInstance = ClientGui.instanceValues(selectedIndex);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			String dirInstance = selectedInstance[0];
+        	File directory = new File("opus_resources\\" + dirInstance + "\\metadata");
+    	    //Open directory
+        	Desktop desktop = null;
+        	try {
+        	      if (Desktop.isDesktopSupported()) {
+        	         desktop = Desktop.getDesktop();
+        	         desktop.open(directory);
+        	      }
+        	      else {
+        	         System.out.println("Desktop is not supported");
+        	      }
+        	}	
+        	catch (IOException e2){  }
+		}
 	}
 	
 	// Panel for creating BagIts
@@ -311,96 +318,100 @@ public class ClientGui {
 		constraints.insets = new Insets(200, 0, 0, 0);
 		bagitPanel.add(openBagitDirButton, constraints);
 		
-		
 		// Button action for creating BagIts
-		createBagitButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-	        	selectedIndex = instancesBagit.getSelectedIndex();
-	        	try {
-					selectedInstance = ClientGui.instanceValues(selectedIndex);
-				} catch (Exception e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
-				}
-	        	String dir = selectedInstance[0];
-				
-	        	bagitPath = "opus_resources\\" + dir + "\\bagits";
-				
-				// Get number of XML-files
-	        	String xmlPath = "opus_resources\\" + dir + "\\metadata"; 
-	        	xmlDirectory = new File(xmlPath);
-				String xmlFiles [] = xmlDirectory.list();
-				
-				//  Get value of opusIdField
-				String opusId = bagOpusIdField.getText();
-				if (opusId.equals("") && bagSelectAllId.isSelected()){
-					opusId = null;
-				}
-				
-				selectedIndex = selectChecksum.getSelectedIndex() ;
-				selectedChecksum = arrayChecksum[selectedIndex];
-
-				// Creates BagIts with help of the XML-files, one or all
-				for (int i = 0; i < xmlFiles.length; i++ ) {
-					try {
-						File test = null;
-						DownloadFile.download(dir, opusId, i);
-						BagInfo.writeBagInfo(dir, opusId, i);
-						BagitTxt.bagitText(dir, opusId, i);
-						FileChecksum.generateFileChecksum(dir, opusId, i, selectedChecksum);
-						
-						if (opusId != null) {
-							test = new File(bagitPath + "\\opus_" + opusId);
-						}
-						if(opusId == null || test.exists() ) {
-							ClientGui.setLook();
-							labelResultBagits.setForeground(Color.black);
-							bagitDirectory = new File(bagitPath);	
-							openBagitDirButton.setText("BagIt-Verzeichnis öffnen");
-							openBagitDirButton.setBackground(null);
-							openBagitDirButton.setForeground(Color.black);
-							openBagitDirButton.setBorderPainted(true);
-							openBagitDirButton.setEnabled(true);
-							if (opusId == null) {
-								labelResultBagits.setText("Ergebnis: BagIts erfolgreich erstellt.");
-							} 
-							else {						
-								labelResultBagits.setText("Ergebnis: BagIt von OPUS-Id " + opusId + " erfolgreich erstellt.");
-							}
-						}
-						else {
-							labelResultBagits.setForeground(Color.red);
-							labelResultBagits.setText("Ergebnis: Bitte Eingabe überprüfen.");
-						}
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-
-			}
-		});
-		
+		createBagitButton.addActionListener(new BagitListner());
 		// Button action for open BagIt directory
-		openBagitDirButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-	    	    //Open directory
-	        	Desktop desktop = null;
-	        	try {
-	        	      if (Desktop.isDesktopSupported()) {
-	        	         desktop = Desktop.getDesktop();
-	        	         desktop.open(bagitDirectory);
-	        	      }
-	        	      else {
-	        	         System.out.println("Desktop is not supported");
-	        	      }
-	        	}	
-	        	catch (IOException e2){  }
-		       }
-		});	
+		openBagitDirButton.addActionListener(new BagitDirectoryListner());
 	}
 	
+	class BagitListner implements ActionListener{
+		public void actionPerformed(ActionEvent e){
+        	bagitPanel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        	selectedIndex = instancesBagit.getSelectedIndex();
+        	try {
+				selectedInstance = ClientGui.instanceValues(selectedIndex);
+			} catch (Exception e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+        	String dir = selectedInstance[0];
+			
+        	bagitPath = "opus_resources\\" + dir + "\\bagits";
+			
+			// Get number of XML-files
+        	String xmlPath = "opus_resources\\" + dir + "\\metadata"; 
+        	xmlDirectory = new File(xmlPath);
+			String xmlFiles [] = xmlDirectory.list();
+			
+			//  Get value of opusIdField
+			String opusId = bagOpusIdField.getText();
+			if (opusId.equals("") && bagSelectAllId.isSelected()){
+				opusId = null;
+			}
+			
+			selectedIndex = selectChecksum.getSelectedIndex() ;
+			String[] arrayChecksum = {"SHA1", "SHA256", "MD5"};
+			selectedChecksum = arrayChecksum[selectedIndex];
+
+			// Creates BagIts with help of the XML-files, one or all
+			try {
+				for (int i = 0; i < xmlFiles.length; i++ ) {
+				
+					File test = null;
+					DownloadFile.download(dir, opusId, i);
+					BagInfo.writeBagInfo(dir, opusId, i);
+					BagitTxt.bagitText(dir, opusId, i);
+					FileChecksum.generateFileChecksum(dir, opusId, i, selectedChecksum);
+					
+					if (opusId != null) {
+						test = new File(bagitPath + "\\opus_" + opusId);
+					}
+					if(opusId == null || test.exists() ) {
+						ClientGui.setLook();
+						labelResultBagits.setForeground(Color.black);
+						bagitDirectory = new File(bagitPath);	
+						openBagitDirButton.setText("BagIt-Verzeichnis öffnen");
+						openBagitDirButton.setBackground(null);
+						openBagitDirButton.setForeground(Color.black);
+						openBagitDirButton.setBorderPainted(true);
+						openBagitDirButton.setEnabled(true);
+						if (opusId == null) {
+							labelResultBagits.setText("Ergebnis: BagIts erfolgreich erstellt.");
+						} 
+						else {						
+							labelResultBagits.setText("Ergebnis: BagIt von OPUS-Id " + opusId + " erfolgreich erstellt.");
+						}
+					}
+					else {
+						labelResultBagits.setForeground(Color.red);
+						labelResultBagits.setText("Ergebnis: Bitte Eingabe überprüfen.");
+					}
+				}        	
+			} catch (Exception e1) {
+				labelResultBagits.setForeground(Color.red);
+				labelResultBagits.setText("Ergebnis: Bitte Eingabe überprüfen.");
+				e1.printStackTrace();
+			} 
+			bagitPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
+	}
+	
+	class BagitDirectoryListner implements ActionListener{
+		public void actionPerformed(ActionEvent e){		
+    	    //Open directory
+        	Desktop desktop = null;
+        	try {
+        	      if (Desktop.isDesktopSupported()) {
+        	         desktop = Desktop.getDesktop();
+        	         desktop.open(bagitDirectory);
+        	      }
+        	      else {
+        	         System.out.println("Desktop is not supported");
+        	      }
+        	}	
+        	catch (IOException e2){  }
+		}
+	}
 	
 	// Panel for creating METS
 	@SuppressWarnings("serial")
@@ -489,71 +500,75 @@ public class ClientGui {
 		metsPanel.add(openMetsDirButton, constraints);
 
 		// Button action for creating METS
-		createMetsButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-	        	selectedIndex = instancesMETS.getSelectedIndex();
-	        	try {
-					selectedInstance = ClientGui.instanceValues(selectedIndex);
-				} catch (Exception e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
-				}
-				
-				//  Get value of opusIdField
-				String opusId = metsOpusIdField.getText();
-				if (opusId.equals("") && metsSelectAllId.isSelected()){
-					opusId = null;
-				}
-									
-				// Creates METS
-				try {				
-				CopyFilesMETS.copyFiles(selectedInstance[0], opusId);
-				BuildMets.generateMets(selectedInstance[0], opusId);
-				
-				ClientGui.setLook();
-				labelResultMets.setForeground(Color.black);
-				openMetsDirButton.setText("METS-Verzeichnis öffnen");
-				openMetsDirButton.setBackground(null);
-				openMetsDirButton.setForeground(Color.black);
-				openMetsDirButton.setBorderPainted(true);
-				openMetsDirButton.setEnabled(true);
-				if (opusId == null && metsSelectAllId.isSelected()) {
-					labelResultMets.setText("Ergebnis: Limited-METS erfolgreich erstellt.");	
-				} 
-				else {
-					labelResultMets.setText("Ergebnis: Limited-METS von OPUS-Id " + opusId + " erfolgreich erstellt.");
-				}
-				
-				metsPath = "opus_resources\\" + selectedInstance[0] + "\\mets\\";
-				metsDirectory = new File(metsPath);
-				
-				} catch (Exception e1) {
-					labelResultMets.setForeground(Color.red);
-					labelResultMets.setText("Ergebnis: Bitte Eingabe überprüfen.");
-					e1.printStackTrace();
-				}
-			}
-		});	
-		
+		createMetsButton.addActionListener(new MetsListener()); 		
 		// Button action for open METS directory
-		openMetsDirButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-	    	    //Open directory
-	        	Desktop desktop = null;
-	        	try {
-	        	      if (Desktop.isDesktopSupported()) {
-	        	         desktop = Desktop.getDesktop();
-	        	         desktop.open(metsDirectory);
-	        	      }
-	        	      else {
-	        	         System.out.println("Desktop is not supported");
-	        	      }
-	        	}	
-	        	catch (IOException e2){  }
-		       }
-		});	
-	}		
+		openMetsDirButton.addActionListener(new MetsDirectoryListner());
+	}
+	
+	class MetsListener implements ActionListener{
+		public void actionPerformed(ActionEvent e){	
+			metsPanel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        	selectedIndex = instancesMETS.getSelectedIndex();
+        	try {
+				selectedInstance = ClientGui.instanceValues(selectedIndex);
+			} catch (Exception e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
+			//  Get value of opusIdField
+			String opusId = metsOpusIdField.getText();
+			if (opusId.equals("") && metsSelectAllId.isSelected()){
+				opusId = null;
+			}
+								
+			// Creates METS
+			try {				
+			CopyFilesMETS.copyFiles(selectedInstance[0], opusId);
+			BuildMets.generateMets(selectedInstance[0], opusId);
+			
+			ClientGui.setLook();
+			labelResultMets.setForeground(Color.black);
+			openMetsDirButton.setText("METS-Verzeichnis öffnen");
+			openMetsDirButton.setBackground(null);
+			openMetsDirButton.setForeground(Color.black);
+			openMetsDirButton.setBorderPainted(true);
+			openMetsDirButton.setEnabled(true);
+			if (opusId == null && metsSelectAllId.isSelected()) {
+				labelResultMets.setText("Ergebnis: Limited-METS erfolgreich erstellt.");	
+			} 
+			else {
+				labelResultMets.setText("Ergebnis: Limited-METS von OPUS-Id " + opusId + " erfolgreich erstellt.");
+			}
+			
+			metsPath = "opus_resources\\" + selectedInstance[0] + "\\mets\\";
+			metsDirectory = new File(metsPath);
+			
+			} catch (Exception e1) {
+				labelResultMets.setForeground(Color.red);
+				labelResultMets.setText("Ergebnis: Bitte Eingabe überprüfen.");
+				e1.printStackTrace();
+			}
+			metsPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
+	}
+	
+	class MetsDirectoryListner implements ActionListener{
+		public void actionPerformed(ActionEvent e){		
+    	    //Open directory
+        	Desktop desktop = null;
+        	try {
+        	      if (Desktop.isDesktopSupported()) {
+        	         desktop = Desktop.getDesktop();
+        	         desktop.open(metsDirectory);
+        	      }
+        	      else {
+        	         System.out.println("Desktop is not supported");
+        	      }
+        	}	
+        	catch (IOException e2){  }
+		}
+	}
 	
 	// Load properties file
 	public static LinkedHashMap<String,String> loadProperties() throws Exception {

@@ -6,7 +6,7 @@ package opus;
  * @author ogan
  *
  */
-public class BagitOpus {
+public class OpusMain {
 
 	public static void main(String[] args) throws Exception {
 		
