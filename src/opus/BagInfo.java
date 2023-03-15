@@ -65,84 +65,83 @@ public class BagInfo {
 		String bagitPath = "opus_resources\\" + dir + "\\bagits\\opus_" + id;
 		
 		// DC element-tags
-		String contributor, coverage, creator, date, description, format, identifier, language, publisher, relation, rights, source, subject, title, type;
     	
     	if (urlElement.getElementsByTagName("dc:identifier").item(1) != null) {
     		FileWriter fileWriter = new FileWriter(bagitPath + "\\bag-info.txt");
             PrintWriter printWriter = new PrintWriter(fileWriter);
 		    int l = 0;
         	while (eElement.getElementsByTagName("dc:title").item(l) != null){
-        		title = eElement.getElementsByTagName("dc:title").item(l).getTextContent().replace(System.lineSeparator(), "");
+        		String title = eElement.getElementsByTagName("dc:title").item(l).getTextContent().replace(System.lineSeparator(), "");
         		printWriter.println("Title: " + title);
         		l++; 
         	} l=0;
         	while (eElement.getElementsByTagName("dc:creator").item(l) != null){
-        		creator = eElement.getElementsByTagName("dc:creator").item(l).getTextContent().replace(System.lineSeparator(), "");
+        		String creator = eElement.getElementsByTagName("dc:creator").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Creator: " + creator);
                 l++;
         	} l=0;
         	while (eElement.getElementsByTagName("dc:subject").item(l) != null){
-        		subject = eElement.getElementsByTagName("dc:subject").item(l).getTextContent().replace(System.lineSeparator(), "");
+        		String subject = eElement.getElementsByTagName("dc:subject").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Subject: " + subject);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:description").item(l) != null){
-        		description = eElement.getElementsByTagName("dc:description").item(l).getTextContent().replace(System.lineSeparator(), "").replace(System.lineSeparator(), "");
+        		String description = eElement.getElementsByTagName("dc:description").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Description: " + description);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:coverage").item(l) != null){
-        		coverage = eElement.getElementsByTagName("dc:coverage").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String coverage = eElement.getElementsByTagName("dc:coverage").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Coverage: " + coverage);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:relation").item(l) != null){
-        		relation = eElement.getElementsByTagName("dc:relation").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String relation = eElement.getElementsByTagName("dc:relation").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Relation: " + relation);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:contributor").item(l) != null){
-        		contributor = eElement.getElementsByTagName("dc:contributor").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String contributor = eElement.getElementsByTagName("dc:contributor").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Contributor: " + contributor);
                 l++;
         	} l=0;
         	while (eElement.getElementsByTagName("dc:publisher").item(l) != null){
-        		publisher = eElement.getElementsByTagName("dc:publisher").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String publisher = eElement.getElementsByTagName("dc:publisher").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Publisher: " + publisher);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:source").item(l) != null){
-        		source = eElement.getElementsByTagName("dc:source").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String source = eElement.getElementsByTagName("dc:source").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Source: " + source);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:date").item(l) != null){
-        		date = eElement.getElementsByTagName("dc:date").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String date = eElement.getElementsByTagName("dc:date").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Date: " + date);
                 l++; 
         	} l=0;
         	while (eElement.getElementsByTagName("dc:type").item(l) != null){
-        		type = eElement.getElementsByTagName("dc:type").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String type = eElement.getElementsByTagName("dc:type").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Type: " + type);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:format").item(l) != null){
-        		format = eElement.getElementsByTagName("dc:format").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String format = eElement.getElementsByTagName("dc:format").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Format: " + format);
                 l++; 
         	} l=0;
         	while (eElement.getElementsByTagName("dc:identifier").item(l) != null){
-        		identifier = eElement.getElementsByTagName("dc:identifier").item(l).getTextContent().replace("%20", " ").replace(System.lineSeparator(), "");;
+        		String identifier = eElement.getElementsByTagName("dc:identifier").item(l).getTextContent().replace("%20", " ").replace(System.lineSeparator(), "");
                 printWriter.println("Identifier: " + identifier);
                 l++;  
         	} l=0;
         	while (eElement.getElementsByTagName("dc:language").item(l) != null){
-        		language = eElement.getElementsByTagName("dc:language").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String language = eElement.getElementsByTagName("dc:language").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Language: " + language);
                 l++; 
         	} l=0;
         	while (eElement.getElementsByTagName("dc:rights").item(l) != null){
-        		rights = eElement.getElementsByTagName("dc:rights").item(l).getTextContent().replace(System.lineSeparator(), "");;
+        		String rights = eElement.getElementsByTagName("dc:rights").item(l).getTextContent().replace(System.lineSeparator(), "");
                 printWriter.println("Rights: " + rights);
                 l++;  
         	} l=0;

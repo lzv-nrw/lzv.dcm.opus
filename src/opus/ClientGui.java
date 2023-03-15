@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import javax.swing.*;
 
 /**
- * Generte Gui
+ * Generate Gui
  * 
  * @author ogan
  *
