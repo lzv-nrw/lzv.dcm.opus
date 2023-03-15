@@ -15,6 +15,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -78,17 +79,17 @@ public class BuildMets {
         // root element
         Element rootElement = doc.createElement("mets:mets");
         doc.appendChild(rootElement);
-        BuildMetsOld.setAttr(doc, rootElement, "xmlns:mets", "http://www.loc.gov/METS/");
+        BuildMets.setAttr(doc, rootElement, "xmlns:mets", "http://www.loc.gov/METS/");
         
         // dmdSec element
         Element dmdSec = doc.createElement("mets:dmdSec");
         rootElement.appendChild(dmdSec);
-        BuildMetsOld.setAttr(doc, dmdSec, "ID", "ie-dmd");
+        BuildMets.setAttr(doc, dmdSec, "ID", "ie-dmd");
 
         // mdWrap element
         Element mdWrap = doc.createElement("mets:mdWrap");
         dmdSec.appendChild(mdWrap);
-        BuildMetsOld.setAttr(doc, mdWrap, "MDTYPE", "DC");
+        BuildMets.setAttr(doc, mdWrap, "MDTYPE", "DC");
          
         // xmlData element
         Element xmlData = doc.createElement("mets:xmlData");
@@ -96,10 +97,10 @@ public class BuildMets {
         
         // record element
         Element record = doc.createElement("record");
-        BuildMetsOld.setAttr(doc, record, "xmlns:dc", "http://purl.org/dc/elements/1.1/");
-        BuildMetsOld.setAttr(doc, record, "xmlns:dcterms", "http://purl.org/dc/terms/");
-        BuildMetsOld.setAttr(doc, record, "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        BuildMetsOld.setAttr(doc, record, "xmlns:mods", "http://www.loc.gov/standards/mods/v3/mods-3-0.xsd");
+        BuildMets.setAttr(doc, record, "xmlns:dc", "http://purl.org/dc/elements/1.1/");
+        BuildMets.setAttr(doc, record, "xmlns:dcterms", "http://purl.org/dc/terms/");
+        BuildMets.setAttr(doc, record, "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+        BuildMets.setAttr(doc, record, "xmlns:mods", "http://www.loc.gov/standards/mods/v3/mods-3-0.xsd");
         xmlData.appendChild(record);
         
         // DC element-tags
@@ -128,18 +129,18 @@ public class BuildMets {
     	// amdSec element
         Element amdSec = doc.createElement("mets:amdSec");
         rootElement.appendChild(amdSec);
-        BuildMetsOld.setAttr(doc, amdSec, "ID", "ie-amd");
+        BuildMets.setAttr(doc, amdSec, "ID", "ie-amd");
         
         // techMD element
         Element techMD = doc.createElement("mets:techMD");
         amdSec.appendChild(techMD);
-        BuildMetsOld.setAttr(doc, techMD, "ID", "ie-amd-tech");
+        BuildMets.setAttr(doc, techMD, "ID", "ie-amd-tech");
         
         // mdWrap element
         mdWrap = doc.createElement("mets:mdWrap");
         techMD.appendChild(mdWrap);
-        BuildMetsOld.setAttr(doc, mdWrap, "MDTYPE", "OTHER");
-        BuildMetsOld.setAttr(doc, mdWrap, "OTHERMDTYPE", "dnx");
+        BuildMets.setAttr(doc, mdWrap, "MDTYPE", "OTHER");
+        BuildMets.setAttr(doc, mdWrap, "OTHERMDTYPE", "dnx");
     	
         // xmlData element
         xmlData = doc.createElement("mets:xmlData");
@@ -148,12 +149,12 @@ public class BuildMets {
         // dnx element
         Element dnx = doc.createElement("dnx");
         xmlData.appendChild(dnx);
-        BuildMetsOld.setAttr(doc, dnx, "xmlns", "http://www.exlibrisgroup.com/dps/dnx");
+        BuildMets.setAttr(doc, dnx, "xmlns", "http://www.exlibrisgroup.com/dps/dnx");
         
         // section element
         Element section = doc.createElement("section");
         dnx.appendChild(section);
-        BuildMetsOld.setAttr(doc, section, "id", "generalIECharacteristics");
+        BuildMets.setAttr(doc, section, "id", "generalIECharacteristics");
         
     	// record element
         record = doc.createElement("record");
@@ -163,7 +164,7 @@ public class BuildMets {
         Element key = doc.createElement("key");
         record.appendChild(key);
         key.appendChild(doc.createTextNode("Other"));
-        BuildMetsOld.setAttr(doc, key, "id", "IEEntityType");
+        BuildMets.setAttr(doc, key, "id", "IEEntityType");
         
         // create the xml file
         // transform the DOM Object to an XML File
@@ -184,6 +185,14 @@ public class BuildMets {
         
 	}
 	
+	// Setting attribute to element
+	public static void setAttr(Document doc, Element element, String name, String value) {
+		Attr attr;
+		attr = doc.createAttribute(name);
+        attr.setValue(value);
+        element.setAttributeNode(attr);
+        element.setAttributeNode(attr);
+	}
 	
 	public static String dcTagMapper(String line){
 		
