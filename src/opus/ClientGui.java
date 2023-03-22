@@ -90,7 +90,7 @@ public class ClientGui {
 		// Add JPanels as tabs
         tabPane.addTab("Extrahiere Metadaten aus OPUS", extractPanel);
         tabPane.addTab("Erstelle BagIts", bagitPanel);
-        tabPane.addTab("Erstelle Limited-METS", metsPanel);
+        //tabPane.addTab("Erstelle Limited-METS", metsPanel);
 		guiFrame.add(tabPane);
 
         // Visibility of the frame
