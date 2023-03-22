@@ -281,7 +281,7 @@ public class ClientGui {
 		bagitPanel.add(labelSelectChecksum, constraints);			
 		
 		// ComboBox for checksum
-		String[] arrayChecksum = {"SHA1", "SHA256", "MD5"};
+		String[] arrayChecksum = {"SHA-256", "SHA-512", "MD5"};
 		selectChecksum = new JComboBox<String>(arrayChecksum);
 		selectChecksum.setBackground(Color.WHITE);
 
@@ -350,7 +350,7 @@ public class ClientGui {
 			}
 			
 			selectedIndex = selectChecksum.getSelectedIndex() ;
-			String[] arrayChecksum = {"SHA1", "SHA256", "MD5"};
+			String[] arrayChecksum = {"SHA256", "SHA512", "MD5"};
 			selectedChecksum = arrayChecksum[selectedIndex];
 
 			// Creates BagIts with help of the XML-files, one or all
