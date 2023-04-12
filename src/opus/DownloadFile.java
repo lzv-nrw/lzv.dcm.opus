@@ -28,7 +28,6 @@ public class DownloadFile {
 	public static void download(String dir, String opusId, int fileCount) throws IOException, Exception {
 
 		String sourceDirectory = "opus_resources\\" + dir + "\\metadata";
-		
 		File inputFile = new File(sourceDirectory + "\\opusMetaData_" + fileCount + ".xml");
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -50,13 +49,24 @@ public class DownloadFile {
 	        		id = idElement.getElementsByTagName("identifier").item(0).getTextContent();
 	        		id = StringCutter.cutFront(id, ":", 2);
 	        	}            
-	        	
+	    		// Check if dir exist
+	    		File bagitTest = new File("opus_resources\\" + dir + "\\bagits\\opus_" + id);
 	        	// Call method downloadFiles for one BagIt or all
-	        	if (opusId != null && id.equals(opusId)) {    		
+	        	if (opusId != null && id.equals(opusId)) {    	
 	        		DownloadFile.downloadFiles(urlElement, id, dir);
+		    	    // Compare downloaded Files
+		    		if (bagitTest.exists()) {	    				    		
+		    			String fileDirectory = "opus_resources\\" + dir + "\\bagits\\opus_" + id + "\\data\\";
+		    			DownloadFile.compareFiles(fileDirectory);
+		    		}
 			    } 
 	        	else if (opusId == null) {
 	        		DownloadFile.downloadFiles(urlElement, id, dir);
+		    	    // Compare downloaded Files
+		    		if (bagitTest.exists()) {	    				    		
+		    			String fileDirectory = "opus_resources\\" + dir + "\\bagits\\opus_" + id + "\\data\\";
+		    	    	DownloadFile.compareFiles(fileDirectory);
+		    		}
 			    }
 		    }
 	    }
@@ -67,7 +77,7 @@ public class DownloadFile {
 		String url = null;
 		String filename = null;
 		List<String> filePath = new ArrayList<String>();
-
+		
     	// Get number of files
     	int n = 0;
     	while (urlElement.getElementsByTagName("dc:format").item(n) != null){
@@ -77,12 +87,12 @@ public class DownloadFile {
     	while (urlElement.getElementsByTagName("dc:identifier").item(m) != null){
     		m++;
     	}
-    	
+
     	// Get url content
     	int k=m-n;
+
     	while (urlElement.getElementsByTagName("dc:identifier").item(k) != null){
     		url = urlElement.getElementsByTagName("dc:identifier").item(k).getTextContent();
-    	            
 		    URL website = new URL(url);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
 			
@@ -91,7 +101,6 @@ public class DownloadFile {
 			File f1 = new File(pathString);  
 			f1.mkdirs();  
 			filename = StringCutter.cutFront(url, "/", 5).replace("%20", " ");
-
 			filePath.add(pathString + filename);
 			
 			FileOutputStream fos = new FileOutputStream(pathString + filename);
@@ -100,4 +109,10 @@ public class DownloadFile {
 			k++;
     	}
     }
+	
+	// Compare downloaded Files
+	public static void compareFiles(String filePath) throws Exception{
+		ArchiveExtractor compare = new ArchiveExtractor();
+		compare.extractor(filePath);
+	}
 }
