@@ -24,11 +24,11 @@ import org.w3c.dom.NodeList;
  */
 public class FileChecksum {
 	
-	public static void generateFileChecksum(String dir, String opusId, int fileCount, String selectedChecksum) throws Exception {
+	public static void generateFileChecksum(String dir, String opusId, String fileName, boolean greater, String selectedChecksum) throws Exception {
 		
-		String sourceDirectory = "opus_resources\\" + dir + "\\metadata";
+		String sourceDirectory = "opus_resources\\" + dir + "\\metadata\\";
+		File inputFile = new File(sourceDirectory + fileName);
 		
-		File inputFile = new File(sourceDirectory + "\\opusMetaData_" + fileCount + ".xml");
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 	    Document doc = dBuilder.parse(inputFile);
@@ -51,7 +51,11 @@ public class FileChecksum {
 	        		id = StringCutter.cutFront(id, ":", 2);
 	        	}
 	        	// Call method writeCsInFile for one BagIt or all
-	        	if (opusId != null && id.equals(opusId)) { 
+	        	if (opusId != null && id.equals(opusId) && greater == false) { 
+	        		System.out.println("Generate Checksums for files in OPUS-ID " + id);
+	        		FileChecksum.writeCsInFile(urlElement, selectedChecksum, id, dir);
+	        	} 
+	        	else if (opusId != null && Integer.parseInt(id) >= Integer.parseInt(opusId) && greater == true) { 
 	        		FileChecksum.writeCsInFile(urlElement, selectedChecksum, id, dir);
 	        	} 
 	        	else if (opusId == null) {

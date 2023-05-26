@@ -21,11 +21,11 @@ import org.w3c.dom.NodeList;
  */
 public class BagInfo {
 	
-	public static void writeBagInfo(String dir, String opusId, int fileCount) throws Exception {
+	public static void writeBagInfo(String dir, String opusId, String fileName, boolean greater) throws Exception {
 		
-		String sourceDirectory = "opus_resources\\" + dir + "\\metadata";
+		String sourceDirectory = "opus_resources\\" + dir + "\\metadata\\";	
+		File inputFile = new File(sourceDirectory + fileName);
 		
-		File inputFile = new File(sourceDirectory + "\\opusMetaData_" + fileCount + ".xml");
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 	    Document doc = dBuilder.parse(inputFile);
@@ -50,10 +50,16 @@ public class BagInfo {
 	        	Element eElement = (Element) nNode;
 	        	
 	        	// Call method writeInFile for one BagIt or all
-	        	if (opusId != null && id.equals(opusId)) { 
+	        	if (opusId != null && id.equals(opusId) && greater == false) { 
+	        		System.out.println("Check OPUS-ID " + id + " for bag-info.txt");
+	        		BagInfo.writeInFile(urlElement, eElement, id, dir);
+	        	}
+	        	else if (opusId != null && Integer.parseInt(id) >= Integer.parseInt(opusId) && greater == true) { 
+	        		System.out.println("Check OPUS-ID " + id + " for bag-info.txt");
 	        		BagInfo.writeInFile(urlElement, eElement, id, dir);
 	        	}
 	        	else if (opusId == null) {
+	        		System.out.println("Check OPUS-ID " + id + " for bag-info.txt");
 	        		BagInfo.writeInFile(urlElement, eElement, id, dir);
 	        	}
 		    }
@@ -65,8 +71,7 @@ public class BagInfo {
 		String bagitPath = "opus_resources\\" + dir + "\\bagits\\opus_" + id;
 		
 		// DC element-tags
-    	
-    	if (urlElement.getElementsByTagName("dc:identifier").item(1) != null) {
+    	if (urlElement.getElementsByTagName("dc:format").getLength() > 0) {
     		FileWriter fileWriter = new FileWriter(bagitPath + "\\bag-info.txt");
             PrintWriter printWriter = new PrintWriter(fileWriter);
 		    int l = 0;

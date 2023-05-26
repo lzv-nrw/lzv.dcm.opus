@@ -1,14 +1,42 @@
 package opus;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Desktop;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
+import com.github.lgooddatepicker.components.DatePickerSettings.DateArea;
+
 
 /**
  * Generate Gui
@@ -29,12 +57,13 @@ public class ClientGui {
 	GridBagLayout layout;
 	
 	JButton getMetadataButton, openXMLDirButton, createBagitButton, createMetsButton,  openBagitDirButton, openMetsDirButton;
-	JCheckBox bagSelectAllId, metsSelectAllId;
+	JCheckBox metaSelectAll, bagSelectAllId, bagSelectFromId, metsSelectAllId;
 	JFileChooser chooseFolder;
-	JLabel labelOPUS, labelResultXML, labelResultBagits, labelResultMets, labelSelectOpusId, labelSelectChecksum;
+	JLabel labelOPUS, labelDate, labelResultXML, labelResultBagits, labelResultMets, labelSelectOpusId, labelSelectChecksum;
 	JPanel extractPanel, bagitPanel, metsPanel;
 	JTabbedPane tabPane;
 	JTextField bagOpusIdField, metsOpusIdField;
+	DatePicker datePicker;
 
 	String[] arrayOPUS;
 	JComboBox<String> instancesOPUS, instancesBagit, instancesMETS, selectChecksum;
@@ -44,6 +73,7 @@ public class ClientGui {
 	String selectedChecksum;
 	File xmlDirectory, bagitDirectory, metsDirectory;
 	String xmlDirectoryPath, bagitDirectoryPath, bagitPath, metsPath;
+	boolean greater;
 
 	public void generateGui() throws Exception {
 
@@ -71,12 +101,16 @@ public class ClientGui {
 		Font bigFont = new Font(Font.SANS_SERIF, Font.BOLD,  13);
 		Font biggerFont = new Font(Font.SANS_SERIF, Font.BOLD,  14);
 
+		// UIManager settings
 		UIManager.put("Label.font", biggerFont);
 		UIManager.put("TabbedPane.font", bigFont);
 		UIManager.put("ComboBox.font", normalFont);
 		UIManager.put("Button.font", bigFont);
 		UIManager.put("CheckBox.font", bigFont);
 		UIManager.put("TextField.font", bigFont);
+		UIManager.put("ToolTip.background", tabColor);
+		UIManager.put("ToolTip.foreground", Color.WHITE);
+		UIManager.put("ToolTip.font", biggerFont);
 
 		// Create panels
 		this.extractPanel();
@@ -137,14 +171,49 @@ public class ClientGui {
 		ClientGui.setContrain(1, 1, 10, 10, 1, 4);
 		constraints.insets = new Insets(0, 10, 0, 0);
 		extractPanel.add(getMetadataButton, constraints);
+		
+		// Label Datepicker
+		labelDate = new JLabel("Extrahiere alle oder ab Datum: ");
+		labelDate.setHorizontalAlignment(JLabel.CENTER);
+		labelDate.setVerticalAlignment(JLabel.TOP);
+		
+	    ClientGui.setContrain(0, 2, 5, 5, 2, 4);
+		constraints.insets = new Insets(50, -300, 0, 0);
+		extractPanel.add(labelDate, constraints);
+		
+		// CheckBox to select all Metadata
+		metaSelectAll = new JCheckBox("Alle");
+		metaSelectAll.setBackground(Color.white);
+		metaSelectAll.setEnabled(true);
+		metaSelectAll.setOpaque(true);
+		
+	    ClientGui.setContrain(0, 2, 5, 5, 2, 4);
+		constraints.insets = new Insets(50, -30, 0, 0);
+		extractPanel.add(metaSelectAll, constraints);
+		
+		// Datepicker
+		datePicker = new DatePicker();
+		DatePickerSettings settings = datePicker.getSettings();
+		settings.setColor(DateArea.BackgroundOverallCalendarPanel, Color.WHITE);
+		settings.setColor(DateArea.BackgroundTodayLabel, Color.WHITE);
+		settings.setColor(DateArea.BackgroundClearLabel, Color.WHITE);
+		settings.setColor(DateArea.BackgroundMonthAndYearMenuLabels, Color.WHITE);
+		settings.setColor(DateArea.TextCalendarPanelLabelsOnHover, tabColor);
+		settings.setColor(DateArea.BackgroundCalendarPanelLabelsOnHover, Color.WHITE);
+		settings.setColor(DateArea.CalendarBackgroundSelectedDate, panelColor);
+		settings.setColorBackgroundWeekdayLabels(panelColor, true);
 
+	    ClientGui.setContrain(0, 2, 5, 5, 2, 4);
+		constraints.insets = new Insets(50, 230, 0, 0);
+		extractPanel.add(datePicker, constraints);
+		
 		// Label for XML result
 		labelResultXML = new JLabel("Ergebnis: ");
 		labelResultXML.setHorizontalAlignment(JLabel.CENTER);
 		labelResultXML.setVerticalAlignment(JLabel.TOP);
 
-		ClientGui.setContrain(0, 2, 5, 5, 2, 4);
-		constraints.insets = new Insets(60, 0, 0, 0);
+		ClientGui.setContrain(0, 3, 5, 5, 2, 4);
+		constraints.insets = new Insets(95, 0, 0, 0);
 		extractPanel.add(labelResultXML, constraints);
 		
 		// Button for open XML directory
@@ -154,8 +223,8 @@ public class ClientGui {
 		openXMLDirButton.setBorderPainted(false);
 		openXMLDirButton.setEnabled(false);
 		
-		ClientGui.setContrain(0, 3, 5, 10, 2, 4);
-		constraints.insets = new Insets(90, 0, 0, 0);
+		ClientGui.setContrain(0, 4, 5, 10, 2, 4);
+		constraints.insets = new Insets(130, 0, 0, 0);
 		extractPanel.add(openXMLDirButton, constraints);	
 		
 		// Button action for extract
@@ -169,16 +238,33 @@ public class ClientGui {
 		public void actionPerformed(ActionEvent e){
         	selectedIndex = instancesOPUS.getSelectedIndex() ;
         	extractPanel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        	String date = null;
+        	String dateCheck = datePicker.getText();
         	try {
 				selectedInstance = ClientGui.instanceValues(selectedIndex);
+				if (metaSelectAll.isSelected()) {
+					date = null;
+				} else if (!dateCheck.isEmpty()) {
+					date = datePicker.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); 
+					System.out.println(date);
+				}
 	        	// Extract metadata from Opus and save in file opusMetaData_i.xml
-				GetMetaData.getRequest(selectedInstance[1], selectedInstance[0]);
+				if (metaSelectAll.isSelected() || dateCheck.isEmpty() == false) {
+					GetMetaData.getRequest(selectedInstance[1], selectedInstance[0], date);
+				}
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
     		ClientGui.setLook();
-    		labelResultXML.setText("Ergebnis: XML-Dateien mit Metadaten erfolgreich erstellt. "); 
+    		if (metaSelectAll.isSelected() == false && dateCheck.isEmpty() == true) {
+    			labelResultXML.setForeground(Color.red);
+    			labelResultXML.setText("Ergebnis: Bitte Eingabe überprüfen.");
+    		} 
+    		else {
+    			labelResultXML.setForeground(Color.black);
+        		labelResultXML.setText("Ergebnis: XML-Dateien mit Metadaten erfolgreich erstellt.");     			
+    		}
     		openXMLDirButton.setText("XML-Verzeichnis öffnen");
     		openXMLDirButton.setBackground(null);
     		openXMLDirButton.setForeground(Color.black);
@@ -248,21 +334,6 @@ public class ClientGui {
 		constraints.insets = new Insets(20, 0, 0, 0);
 		bagitPanel.add(instancesBagit, constraints);
 		
-		// Label for selecting Opus-Id
-		labelSelectOpusId = new JLabel("OPUS-Id: ");
-		
-		ClientGui.setContrain(1, 2, 0, 10, 3, 6);
-		constraints.insets = new Insets(70, -140, 0, 0);
-		bagitPanel.add(labelSelectOpusId, constraints);		
-		
-		// TextField to select Opus-Id
-		bagOpusIdField = new JTextField(5);
-
-		ClientGui.setContrain(2, 2, 0, 10, 3, 6);
-		constraints.insets = new Insets(70, -10, 0, 0);
-		bagOpusIdField.setEditable(true);
-		bagitPanel.add(bagOpusIdField, constraints);
-		
 		// CheckBox to select all Opus-Id
 		bagSelectAllId = new JCheckBox("Alle");
 		bagSelectAllId.setBackground(Color.white);
@@ -270,8 +341,39 @@ public class ClientGui {
 		bagSelectAllId.setOpaque(true);
 		
 		ClientGui.setContrain(3, 2, 0, 5, 3, 6);
-		constraints.insets = new Insets(70, 120, 0, 0);
+		constraints.insets = new Insets(70, -220, 0, 0);
 		bagitPanel.add(bagSelectAllId, constraints);
+		
+		// CheckBox to select from Opus-Id
+		bagSelectFromId = new JCheckBox("(oder ab)");
+		bagSelectFromId.setBackground(Color.white);
+		bagSelectFromId.setEnabled(true);
+		bagSelectFromId.setOpaque(true);
+		
+		bagSelectFromId.setToolTipText("Falls nicht aktiviert, wird nur ein OPUS-Id ausgewählt");		
+		ToolTipManager ttm = ToolTipManager.sharedInstance();
+        ttm.setInitialDelay(10);       
+        
+        greater = false;
+		
+		ClientGui.setContrain(3, 2, 0, 5, 3, 6);
+		constraints.insets = new Insets(70, -50, 0, 0);
+		bagitPanel.add(bagSelectFromId, constraints);		
+		
+		// Label for selecting Opus-Id
+		labelSelectOpusId = new JLabel("OPUS-Id: ");
+		
+		ClientGui.setContrain(1, 2, 0, 10, 3, 6);
+		constraints.insets = new Insets(70, 110, 0, 0);
+		bagitPanel.add(labelSelectOpusId, constraints);		
+		
+		// TextField to select Opus-Id
+		bagOpusIdField = new JTextField(5);
+
+		ClientGui.setContrain(2, 2, 0, 10, 3, 6);
+		constraints.insets = new Insets(70, 230, 0, 0);
+		bagOpusIdField.setEditable(true);
+		bagitPanel.add(bagOpusIdField, constraints);
 		
 		// Label for selecting checksum
 		labelSelectChecksum = new JLabel("Checksummen-Verfahren: ");
@@ -349,6 +451,10 @@ public class ClientGui {
 				opusId = null;
 			}
 			
+			if (bagSelectFromId.isSelected()){				
+				greater = true;
+			}
+			
 			selectedIndex = selectChecksum.getSelectedIndex() ;
 			String[] arrayChecksum = {"SHA256", "SHA512", "MD5"};
 			selectedChecksum = arrayChecksum[selectedIndex];
@@ -356,17 +462,16 @@ public class ClientGui {
 			// Creates BagIts with help of the XML-files, one or all
 			try {
 				for (int i = 0; i < xmlFiles.length; i++ ) {
-				
+					String fileName = xmlFiles[i];
 					File test = null;
-					DownloadFile.download(dir, opusId, i);
-					BagInfo.writeBagInfo(dir, opusId, i);
-					BagitTxt.bagitText(dir, opusId, i);
-					FileChecksum.generateFileChecksum(dir, opusId, i, selectedChecksum);
-					
+					DownloadFile.download(dir, opusId, fileName, greater);
+					BagInfo.writeBagInfo(dir, opusId, fileName, greater);
+					BagitTxt.bagitText(dir, opusId, fileName, greater);
+					FileChecksum.generateFileChecksum(dir, opusId, fileName, greater, selectedChecksum);
 					if (opusId != null) {
 						test = new File(bagitPath + "\\opus_" + opusId);
 					}
-					if(opusId == null || test.exists() ) {
+					if(opusId == null || test.exists() || bagSelectFromId.isSelected()  ) {
 						ClientGui.setLook();
 						labelResultBagits.setForeground(Color.black);
 						bagitDirectory = new File(bagitPath);	
@@ -375,7 +480,7 @@ public class ClientGui {
 						openBagitDirButton.setForeground(Color.black);
 						openBagitDirButton.setBorderPainted(true);
 						openBagitDirButton.setEnabled(true);
-						if (opusId == null) {
+						if (opusId == null || greater == true) {
 							labelResultBagits.setText("Ergebnis: BagIts erfolgreich erstellt.");
 						} 
 						else {						

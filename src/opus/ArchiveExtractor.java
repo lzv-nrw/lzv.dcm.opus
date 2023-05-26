@@ -134,7 +134,6 @@ public class ArchiveExtractor {
         while (enu.hasMoreElements()) {        	
         	ZipEntry zipEntry = (ZipEntry) enu.nextElement();
         	String name = zipEntry.getName();
-        	
 			// Check if entry is a folder and create folder
         	File fileNew = new File(destDir + name);
             if (name.endsWith("/")) {

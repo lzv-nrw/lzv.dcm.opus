@@ -11,6 +11,7 @@ import java.nio.channels.ReadableByteChannel;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -24,32 +25,60 @@ import org.w3c.dom.Text;
  */
 public class GetMetaData {
 
-	public static void getRequest(String url, String dir) throws IOException, Exception {
-
-		URL urlForGetRequest = new URL(url +"oai?verb=ListRecords&metadataPrefix=oai_dc");
+	public static void getRequest(String url, String dir, String date) throws IOException, Exception {
+		
+		String xmlPath = "opus_resources\\" + dir +"\\metadata\\";
+		File metaData = new File(xmlPath);
+		if (!metaData.exists()) {		
+			metaData.mkdirs();
+		}
+		
+		int fileCount = 0;
+		URL urlForGetRequest;
+		if (date == null){
+			FileUtils.cleanDirectory(new File(xmlPath));
+			urlForGetRequest = new URL(url +"oai?verb=ListRecords&metadataPrefix=oai_dc");
+		}
+		else {
+			urlForGetRequest = new URL(url +"oai?verb=ListRecords&metadataPrefix=oai_dc&from=" + date);
+			File files = new File(xmlPath);
+			fileCount = files.list().length;
+		}
+		
 	    HttpURLConnection conection = (HttpURLConnection) urlForGetRequest.openConnection();
 	    conection.setRequestMethod("GET");
 	    int responseCode = conection.getResponseCode();
 
 	    ReadableByteChannel rbc;
-
 	    FileOutputStream fos;
-	    
+	    File inputFile;
 
 	    String resumptionTokenContent = null;
 	    
 	    // Download first xml file
 	    if (responseCode == HttpURLConnection.HTTP_OK) {
+	    	System.out.println(urlForGetRequest.toString());
 	    	rbc = Channels.newChannel(urlForGetRequest.openStream());
-			
-	    	String xmlPath = "opus_resources\\" + dir +"\\metadata\\";
 	    	File xmlOutput = new File(xmlPath);
 			xmlOutput.mkdirs();
-			fos = new FileOutputStream(xmlPath + "opusMetaData_0.xml");
+			
+			if (date == null) {
+				fos = new FileOutputStream(xmlPath + "opusMetaData_0.xml");
+			}
+			else {
+				fos = new FileOutputStream(xmlPath + "opusMetaData_" + fileCount + ".xml");
+			}
+			
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
             
-            File inputFile = new File(xmlPath + "opusMetaData_0.xml");
+			if (date == null) {
+				inputFile = new File(xmlPath + "opusMetaData_0.xml");
+			}
+			else {
+				inputFile = new File(xmlPath + "opusMetaData_" + fileCount + ".xml");
+			}
+			
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(inputFile);
@@ -68,8 +97,13 @@ public class GetMetaData {
 
             // Download next pages
             int i=1;
+            if (date != null) {
+            	i = fileCount + 1;
+            }
+            	
             while(resumptionTokenElement != null && resumptionTokeContentNode != null) {          	
             	urlForGetRequest = new URL(url +"oai?verb=ListRecords&resumptionToken=" + resumptionTokenContent);
+    	    	System.out.println(urlForGetRequest.toString());
             	rbc = Channels.newChannel(urlForGetRequest.openStream());        
             	fos = new FileOutputStream(xmlPath + "opusMetaData_" + i +".xml");
     			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);

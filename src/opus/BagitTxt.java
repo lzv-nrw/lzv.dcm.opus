@@ -21,11 +21,11 @@ import org.w3c.dom.NodeList;
  */
 public class BagitTxt {
 	
-	public static void bagitText(String dir, String opusId, int fileCount) throws IOException, Exception {
+	public static void bagitText(String dir, String opusId, String fileName, boolean greater) throws IOException, Exception {
 		
-		String sourceDirectory = "opus_resources\\" + dir + "\\metadata";
+		String sourceDirectory = "opus_resources\\" + dir + "\\metadata\\";	
+		File inputFile = new File(sourceDirectory + fileName);
 		
-		File inputFile = new File(sourceDirectory + "\\opusMetaData_" + fileCount + ".xml");
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 	    Document doc = dBuilder.parse(inputFile);
@@ -49,10 +49,16 @@ public class BagitTxt {
 	        	}            
 	        
 	        	// Call method writeInFile for one BagIt or all
-	        	if (opusId != null && id.equals(opusId)) { 
+	        	if (opusId != null && id.equals(opusId) && greater == false) { 
+	        		System.out.println("Check OPUS-ID " + id + " for bagit.txt");
+		        	BagitTxt.writeInFile(urlElement, id, dir);
+	        	} 
+	        	else if (opusId != null && Integer.parseInt(id) >= Integer.parseInt(opusId) && greater == true) {
+	        		System.out.println("Check OPUS-ID " + id + " for bagit.txt");
 		        	BagitTxt.writeInFile(urlElement, id, dir);
 	        	} 
 	        	else if (opusId == null) {
+	        		System.out.println("Check OPUS-ID " + id + " for bagit.txt");
 	        		BagitTxt.writeInFile(urlElement, id, dir);		        	
 	        	}
 	        }
@@ -61,7 +67,7 @@ public class BagitTxt {
 	
 	// Writer
 	public static void writeInFile(Element urlElement, String id, String dir) throws IOException {
-		if (urlElement.getElementsByTagName("dc:identifier").item(1) != null) {
+		if (urlElement.getElementsByTagName("dc:format").getLength() > 0) {
 			String bagitPath = "opus_resources\\" + dir + "\\bagits\\opus_" + id;
 	        FileWriter fileWriter = new FileWriter(bagitPath + "\\bagit.txt");
 	        PrintWriter printWriter = new PrintWriter(fileWriter);
